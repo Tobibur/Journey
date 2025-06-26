@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.tobibur.journey.presentation.screens.AddEntryScreen
-import com.tobibur.journey.presentation.screens.HomeScreen
+import com.tobibur.journey.presentation.screens.addentry.AddEntryScreen
+import com.tobibur.journey.presentation.screens.home.HomeScreen
 
 sealed class Screen(val route: String) {
     object Home : Screen("home")
