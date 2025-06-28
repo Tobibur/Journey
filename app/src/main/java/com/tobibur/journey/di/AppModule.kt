@@ -7,6 +7,7 @@ import com.tobibur.journey.data.local.database.JournalDatabase
 import com.tobibur.journey.data.repository.JournalRepositoryImpl
 import com.tobibur.journey.domain.repository.JournalRepository
 import com.tobibur.journey.domain.usecase.AddEntryUseCase
+import com.tobibur.journey.domain.usecase.GetEntryByIdUseCase
 import com.tobibur.journey.domain.usecase.GetJournalEntriesUseCase
 import dagger.Module
 import dagger.Provides
@@ -42,5 +43,11 @@ object AppModule {
     @Singleton
     fun provideGetJournalEntriesUseCase(repository: JournalRepository): GetJournalEntriesUseCase {
         return GetJournalEntriesUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetJournalByIdEntriesUseCase(repository: JournalRepository): GetEntryByIdUseCase {
+        return GetEntryByIdUseCase(repository)
     }
 }

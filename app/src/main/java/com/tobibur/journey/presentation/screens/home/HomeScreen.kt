@@ -29,7 +29,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
 
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(onClick = { navController.navigate(Screen.AddEntry.route) }) {
+            FloatingActionButton(onClick = { navController.navigate(Screen.AddEntry.createRoute(0)) }) {
                 Icon(Icons.Default.Add, contentDescription = "Add Entry")
             }
         }
@@ -49,7 +49,9 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(entries) { entry ->
-                    JournalEntryCard(entry = entry)
+                    JournalEntryCard(entry = entry, onClick = {
+                        navController.navigate(Screen.AddEntry.createRoute(entry.id))
+                    })
                 }
             }
         }

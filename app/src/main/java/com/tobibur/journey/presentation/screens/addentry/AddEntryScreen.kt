@@ -18,6 +18,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -30,7 +31,15 @@ import androidx.navigation.compose.rememberNavController
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEntryScreen(navController: NavController,
+                   entryId: Int,
                    viewModel: AddEntryViewModel = hiltViewModel()) {
+
+    LaunchedEffect(entryId) {
+        if (entryId != 0) {
+            viewModel.loadEntry(entryId)
+        }
+    }
+
     val title by viewModel.title.collectAsState()
     val content by viewModel.content.collectAsState()
 
@@ -93,5 +102,5 @@ fun AddEntryScreen(navController: NavController,
 @Preview(showBackground = true)
 @Composable
 fun AddEntryScreenPreview() {
-    AddEntryScreen(navController = rememberNavController()) // Replace with a valid NavController context in real use
+    AddEntryScreen(navController = rememberNavController(), entryId = 0) // Replace with a valid NavController context in real use
 }
