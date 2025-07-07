@@ -8,11 +8,15 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.tobibur.journey.presentation.screens.addentry.AddEntryScreen
 import com.tobibur.journey.presentation.screens.home.HomeScreen
+import com.tobibur.journey.presentation.screens.viewentry.ViewEntryScreen
 
 sealed class Screen(val route: String) {
     object Home : Screen("home")
     object AddEntry : Screen("add_entry/{entryId}") {
         fun createRoute(entryId: Int) = "add_entry/$entryId"
+    }
+    object ViewEntry : Screen("view_entry/{entryId}") {
+        fun createRoute(entryId: Int) = "view_entry/$entryId"
     }
 }
 
@@ -29,6 +33,13 @@ fun JournalNavHost() {
         ) { backStackEntry ->
             val entryId = backStackEntry.arguments?.getInt("entryId") ?: 0
             AddEntryScreen(navController, entryId)
+        }
+        composable(
+            route = Screen.ViewEntry.route,
+            arguments = listOf(navArgument("entryId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val entryId = backStackEntry.arguments?.getInt("entryId") ?: 0
+            ViewEntryScreen(navController, entryId)
         }
     }
 }

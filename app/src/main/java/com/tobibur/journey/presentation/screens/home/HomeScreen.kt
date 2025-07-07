@@ -50,7 +50,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
             ) {
                 items(entries) { entry ->
                     JournalEntryCard(entry = entry, onClick = {
-                        navController.navigate(Screen.AddEntry.createRoute(entry.id))
+                        navController.navigate(Screen.ViewEntry.createRoute(entry.id))
                     })
                 }
             }
