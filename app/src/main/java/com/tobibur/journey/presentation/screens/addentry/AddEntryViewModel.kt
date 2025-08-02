@@ -23,6 +23,9 @@ class AddEntryViewModel @Inject constructor(
     private val _content = MutableStateFlow("")
     val content: StateFlow<String> = _content
 
+    private val _timestamp = MutableStateFlow(System.currentTimeMillis())
+    val timestamp: StateFlow<Long> = _timestamp
+
     private var currentEntryId: Int = 0
 
     fun onTitleChange(newTitle: String) {
@@ -39,6 +42,7 @@ class AddEntryViewModel @Inject constructor(
                 currentEntryId = it.id
                 _title.value = it.title
                 _content.value = it.content
+                _timestamp.value = it.timestamp
             }
         }
     }

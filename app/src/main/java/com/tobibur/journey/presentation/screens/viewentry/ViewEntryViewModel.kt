@@ -8,6 +8,8 @@ import com.tobibur.journey.domain.model.JournalEntry
 import com.tobibur.journey.domain.usecase.DeleteEntryUseCase
 import com.tobibur.journey.domain.usecase.GetEntryByIdUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -20,9 +22,15 @@ class ViewEntryViewModel @Inject constructor(
     private val _entry = mutableStateOf<JournalEntry?>(null)
     val entry: State<JournalEntry?> = _entry
 
+    private val _timestamp = MutableStateFlow(System.currentTimeMillis())
+    val timestamp: StateFlow<Long> = _timestamp
+
     fun loadEntry(id: Int) {
         viewModelScope.launch {
             _entry.value = getEntryById(id)
+            _entry.value?.let {
+                _timestamp.value = it.timestamp
+            }
         }
     }
 

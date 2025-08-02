@@ -1,38 +1,48 @@
 package com.tobibur.journey.presentation.screens.addentry
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.tobibur.journey.presentation.components.JourneyTopAppBar
+import com.tobibur.journey.utils.formatTimestamp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddEntryScreen(navController: NavController,
-                   entryId: Int,
-                   viewModel: AddEntryViewModel = hiltViewModel()) {
+fun AddEntryScreen(
+    navController: NavController,
+    entryId: Int,
+    viewModel: AddEntryViewModel = hiltViewModel()
+) {
+    val title by viewModel.title.collectAsState()
+    val content by viewModel.content.collectAsState()
+
+    val focusManager = LocalFocusManager.current
 
     LaunchedEffect(entryId) {
         if (entryId != 0) {
@@ -40,13 +50,13 @@ fun AddEntryScreen(navController: NavController,
         }
     }
 
-    val title by viewModel.title.collectAsState()
-    val content by viewModel.content.collectAsState()
+    val timestamp by viewModel.timestamp.collectAsState()
+    val formattedDate = remember(timestamp) { formatTimestamp(timestamp) }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("New Entry") },
+            JourneyTopAppBar(
+                title = formattedDate,
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -55,45 +65,75 @@ fun AddEntryScreen(navController: NavController,
                 actions = {
                     Text(
                         text = "Save",
-                        style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier
-                            .padding(end = 16.dp)
                             .clickable {
-                                // Handle save action here
                                 viewModel.saveEntry {
-                                    // Or navigate back to the previous screen
+                                    focusManager.clearFocus()
                                     navController.popBackStack()
                                 }
                             }
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     )
                 }
             )
         }
-    ) { padding ->
+    ) { innerPadding ->
         Column(
             modifier = Modifier
-                .padding(padding)
-                .padding(16.dp)
+                .padding(innerPadding)
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface)
+                .imePadding()
+                .padding(16.dp)
         ) {
-            OutlinedTextField(
+
+            BasicTextField(
                 value = title,
                 onValueChange = viewModel::onTitleChange,
-                placeholder = { Text("Title") },
-                textStyle = MaterialTheme.typography.titleLarge,
+                textStyle = MaterialTheme.typography.headlineSmall.copy(
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(16.dp),
+                singleLine = true,
+                decorationBox = { innerTextField ->
+                    if (title.isEmpty()) {
+                        Text(
+                            "Title", style = MaterialTheme.typography.headlineSmall.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        )
+                    }
+                    innerTextField()
+                }
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
+
+            BasicTextField(
                 value = content,
                 onValueChange = viewModel::onContentChange,
-                placeholder = { Text("Start typing...") },
-                textStyle = MaterialTheme.typography.bodyLarge,
+                textStyle = MaterialTheme.typography.bodyLarge.copy(
+                    color = MaterialTheme.colorScheme.onSurface
+                ),
                 modifier = Modifier
                     .fillMaxSize()
-                    .weight(1f),
-                maxLines = Int.MAX_VALUE
+                    .padding(16.dp),
+                maxLines = Int.MAX_VALUE,
+                decorationBox = { innerTextField ->
+                    if (content.isEmpty()) {
+                        Text(
+                            "Start writing your thoughts...",
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        )
+                    }
+                    innerTextField()
+                }
             )
         }
     }
@@ -102,5 +142,8 @@ fun AddEntryScreen(navController: NavController,
 @Preview(showBackground = true)
 @Composable
 fun AddEntryScreenPreview() {
-    AddEntryScreen(navController = rememberNavController(), entryId = 0) // Replace with a valid NavController context in real use
+    AddEntryScreen(
+        navController = rememberNavController(),
+        entryId = 0
+    ) // Replace with a valid NavController context in real use
 }
