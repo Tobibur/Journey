@@ -17,7 +17,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -40,11 +39,9 @@ import com.tobibur.journey.utils.formatTimestamp
 fun ViewEntryScreen(
     navController: NavController,
     entryId: Int,
+    setTopBar: (@Composable (() -> Unit)) -> Unit,
     viewModel: ViewEntryViewModel = hiltViewModel()
 ) {
-    LaunchedEffect(entryId) {
-        viewModel.loadEntry(entryId)
-    }
 
     val entry = viewModel.entry.value
     var showDialog by remember { mutableStateOf(false) }
@@ -52,8 +49,9 @@ fun ViewEntryScreen(
     val timestamp by viewModel.timestamp.collectAsState()
     val formattedDate = remember(timestamp) { formatTimestamp(timestamp) }
 
-    Scaffold(
-        topBar = {
+    LaunchedEffect(entryId) {
+        viewModel.loadEntry(entryId)
+        setTopBar {
             JourneyTopAppBar(
                 title = formattedDate,
                 actions = {
@@ -72,46 +70,46 @@ fun ViewEntryScreen(
                     }
                 }
             )
-        }
-    ) { padding ->
-        if (entry == null) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else {
-            Column(
-                modifier = Modifier
-                    .padding(padding)
-                    .padding(16.dp)
-                    .verticalScroll(rememberScrollState())
-            ) {
-                Text(text = entry.title, style = MaterialTheme.typography.headlineMedium)
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(text = entry.content, style = MaterialTheme.typography.bodyLarge)
-            }
-        }
 
-        if (showDialog) {
-            AlertDialog(
-                onDismissRequest = { showDialog = false },
-                title = { Text("Delete Entry?") },
-                text = { Text("Are you sure you want to delete this journal entry? This action cannot be undone.") },
-                confirmButton = {
-                    TextButton(onClick = {
-                        showDialog = false
-                        viewModel.deleteEntry {
-                            navController.popBackStack() // Go back after delete
-                        }
-                    }) {
-                        Text("Delete", color = MaterialTheme.colorScheme.error)
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDialog = false }) {
-                        Text("Cancel")
-                    }
-                }
-            )
         }
+    }
+
+    if (entry == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Text(text = entry.title, style = MaterialTheme.typography.headlineMedium)
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = entry.content, style = MaterialTheme.typography.bodyLarge)
+        }
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Delete Entry?") },
+            text = { Text("Are you sure you want to delete this journal entry? This action cannot be undone.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDialog = false
+                    viewModel.deleteEntry {
+                        navController.popBackStack() // Go back after delete
+                    }
+                }) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }

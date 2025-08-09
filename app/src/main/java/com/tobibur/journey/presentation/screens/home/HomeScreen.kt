@@ -3,19 +3,16 @@ package com.tobibur.journey.presentation.screens.home
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,63 +29,58 @@ import com.tobibur.journey.presentation.navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
+fun HomeScreen(
+    navController: NavController,
+    setTopBar: (@Composable (() -> Unit)) -> Unit,
+    viewModel: HomeViewModel = hiltViewModel()
+) {
 
+    LaunchedEffect(Unit) {
+        setTopBar {
+            JourneyTopAppBar(title = "Journey")
+        }
+    }
     val entries = viewModel.entries.collectAsState().value
-
-    Scaffold(
-        topBar = {
-            JourneyTopAppBar(title = "Journal Entries")
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { navController.navigate(Screen.AddEntry.createRoute(0)) }) {
-                Icon(Icons.Default.Add, contentDescription = "Add Entry")
-            }
-        },
-    ) { padding ->
-        if (entries.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("No journal entries yet")
-            }
-        } else {
-            LazyColumn(
-                contentPadding = padding,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(
-                    items = entries,
-                    key = { it.id }) { entry ->
-                    SwipeableItemWithActions(
-                        actions = {
-                            ActionIcon(
-                                onClick = {
-                                    navController.navigate(Screen.ViewEntry.createRoute(entry.id))
-                                },
-                                backgroundColor = Color.Blue,
-                                icon = Icons.Default.Edit,
-                                modifier = Modifier.fillMaxHeight()
-                            )
-                            ActionIcon(
-                                onClick = {
-                                    viewModel.deleteEntry(entry)
-                                },
-                                backgroundColor = Color.Red,
-                                icon = Icons.Default.Delete,
-                                modifier = Modifier.fillMaxHeight()
-                            )
-                        }
-                    ) {
-                        JournalEntryCard(
-                            entry = entry, onClick = {
+    if (entries.isEmpty()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("No journal entries yet")
+        }
+    } else {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            items(
+                items = entries,
+                key = { it.id }) { entry ->
+                SwipeableItemWithActions(
+                    actions = {
+                        ActionIcon(
+                            onClick = {
                                 navController.navigate(Screen.ViewEntry.createRoute(entry.id))
-                            }
+                            },
+                            backgroundColor = Color.Blue,
+                            icon = Icons.Default.Edit,
+                            modifier = Modifier.fillMaxHeight()
+                        )
+                        ActionIcon(
+                            onClick = {
+                                viewModel.deleteEntry(entry)
+                            },
+                            backgroundColor = Color.Red,
+                            icon = Icons.Default.Delete,
+                            modifier = Modifier.fillMaxHeight()
                         )
                     }
+                ) {
+                    JournalEntryCard(
+                        entry = entry, onClick = {
+                            navController.navigate(Screen.ViewEntry.createRoute(entry.id))
+                        }
+                    )
                 }
             }
         }
@@ -98,5 +90,5 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen(navController = rememberNavController()) // Replace with a valid NavController in real use
+    HomeScreen(navController = rememberNavController(), {}) // Replace with a valid NavController in real use
 }

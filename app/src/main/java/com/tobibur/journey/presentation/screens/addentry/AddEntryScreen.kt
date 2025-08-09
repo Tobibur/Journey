@@ -14,7 +14,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,6 +36,7 @@ import com.tobibur.journey.utils.formatTimestamp
 fun AddEntryScreen(
     navController: NavController,
     entryId: Int,
+    setTopBar: (@Composable (() -> Unit)) -> Unit,
     viewModel: AddEntryViewModel = hiltViewModel()
 ) {
     val title by viewModel.title.collectAsState()
@@ -44,17 +44,15 @@ fun AddEntryScreen(
 
     val focusManager = LocalFocusManager.current
 
-    LaunchedEffect(entryId) {
-        if (entryId != 0) {
-            viewModel.loadEntry(entryId)
-        }
-    }
 
     val timestamp by viewModel.timestamp.collectAsState()
     val formattedDate = remember(timestamp) { formatTimestamp(timestamp) }
 
-    Scaffold(
-        topBar = {
+    LaunchedEffect(entryId) {
+        if (entryId != 0) {
+            viewModel.loadEntry(entryId)
+        }
+        setTopBar {
             JourneyTopAppBar(
                 title = formattedDate,
                 navigationIcon = {
@@ -80,62 +78,63 @@ fun AddEntryScreen(
                 }
             )
         }
-    ) { innerPadding ->
-        Column(
+    }
+
+
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface)
+            .imePadding()
+            .padding(16.dp)
+    ) {
+
+        BasicTextField(
+            value = title,
+            onValueChange = viewModel::onTitleChange,
+            textStyle = MaterialTheme.typography.headlineSmall.copy(
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.SemiBold
+            ),
             modifier = Modifier
-                .padding(innerPadding)
+                .fillMaxWidth()
+                .padding(16.dp),
+            singleLine = true,
+            decorationBox = { innerTextField ->
+                if (title.isEmpty()) {
+                    Text(
+                        "Title", style = MaterialTheme.typography.headlineSmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
+                }
+                innerTextField()
+            }
+        )
+
+        BasicTextField(
+            value = content,
+            onValueChange = viewModel::onContentChange,
+            textStyle = MaterialTheme.typography.bodyLarge.copy(
+                color = MaterialTheme.colorScheme.onSurface
+            ),
+            modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface)
-                .imePadding()
-                .padding(16.dp)
-        ) {
-
-            BasicTextField(
-                value = title,
-                onValueChange = viewModel::onTitleChange,
-                textStyle = MaterialTheme.typography.headlineSmall.copy(
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.SemiBold
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                singleLine = true,
-                decorationBox = { innerTextField ->
-                    if (title.isEmpty()) {
-                        Text(
-                            "Title", style = MaterialTheme.typography.headlineSmall.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                .padding(16.dp),
+            maxLines = Int.MAX_VALUE,
+            decorationBox = { innerTextField ->
+                if (content.isEmpty()) {
+                    Text(
+                        "Start writing your thoughts...",
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                    }
-                    innerTextField()
+                    )
                 }
-            )
-
-            BasicTextField(
-                value = content,
-                onValueChange = viewModel::onContentChange,
-                textStyle = MaterialTheme.typography.bodyLarge.copy(
-                    color = MaterialTheme.colorScheme.onSurface
-                ),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                maxLines = Int.MAX_VALUE,
-                decorationBox = { innerTextField ->
-                    if (content.isEmpty()) {
-                        Text(
-                            "Start writing your thoughts...",
-                            style = MaterialTheme.typography.bodyLarge.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        )
-                    }
-                    innerTextField()
-                }
-            )
-        }
+                innerTextField()
+            }
+        )
     }
 }
 
@@ -144,6 +143,7 @@ fun AddEntryScreen(
 fun AddEntryScreenPreview() {
     AddEntryScreen(
         navController = rememberNavController(),
-        entryId = 0
+        entryId = 0,
+        setTopBar = {}
     ) // Replace with a valid NavController context in real use
 }
