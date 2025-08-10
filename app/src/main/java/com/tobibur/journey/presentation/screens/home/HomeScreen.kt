@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -62,7 +63,7 @@ fun HomeScreen(
                             onClick = {
                                 navController.navigate(Screen.ViewEntry.createRoute(entry.id))
                             },
-                            backgroundColor = Color.Blue,
+                            backgroundColor = MaterialTheme.colorScheme.tertiary,
                             icon = Icons.Default.Edit,
                             modifier = Modifier.fillMaxHeight()
                         )
@@ -70,7 +71,7 @@ fun HomeScreen(
                             onClick = {
                                 viewModel.deleteEntry(entry)
                             },
-                            backgroundColor = Color.Red,
+                            backgroundColor = Color(0xFFD11A2A),
                             icon = Icons.Default.Delete,
                             modifier = Modifier.fillMaxHeight()
                         )

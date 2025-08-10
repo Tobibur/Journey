@@ -1,9 +1,13 @@
 package com.tobibur.journey.di
 
 import android.app.Application
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
 import com.tobibur.journey.data.local.dao.JournalDao
 import com.tobibur.journey.data.local.database.JournalDatabase
+import com.tobibur.journey.data.local.datastore.dataStore
 import com.tobibur.journey.data.repository.JournalRepositoryImpl
 import com.tobibur.journey.domain.repository.JournalRepository
 import com.tobibur.journey.domain.usecase.AddEntryUseCase
@@ -14,6 +18,7 @@ import com.tobibur.journey.domain.usecase.GetJournalStreakUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -63,5 +68,11 @@ object AppModule {
     @Singleton
     fun provideGetJournalStreakUseCase(repository: JournalRepository): GetJournalStreakUseCase {
         return GetJournalStreakUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDataStore(@ApplicationContext context: Context): DataStore<Preferences> {
+        return context.dataStore
     }
 }

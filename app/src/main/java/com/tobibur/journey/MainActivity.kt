@@ -9,7 +9,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.tobibur.journey.presentation.navigation.JournalNavHost
+import com.tobibur.journey.presentation.screens.settings.SettingsViewModel
 import com.tobibur.journey.ui.theme.JourneyTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -19,7 +21,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            JourneyTheme {
+            val settingsViewModel: SettingsViewModel = hiltViewModel()
+
+            JourneyTheme(settingsViewModel) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     JournalNavHost()
                 }
@@ -31,7 +35,7 @@ class MainActivity : ComponentActivity() {
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
-    JourneyTheme {
+    JourneyTheme() {
         JournalNavHost()
     }
 }

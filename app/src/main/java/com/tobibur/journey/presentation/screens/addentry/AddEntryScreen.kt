@@ -78,9 +78,7 @@ fun AddEntryScreen(
                                 }
                             }
                             .padding(horizontal = 16.dp, vertical = 8.dp),
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        style = MaterialTheme.typography.titleMedium
                     )
                 }
             )

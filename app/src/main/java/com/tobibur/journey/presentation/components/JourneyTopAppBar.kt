@@ -10,6 +10,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -22,10 +24,13 @@ fun JourneyTopAppBar(
     navigationIcon: @Composable (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
+    val bgColor = MaterialTheme.colorScheme.primaryContainer
+    val contentColor = if (bgColor.luminance() > 0.5f) Color.Black else Color.White
+
     TopAppBar(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(1.dp), // Optional subtle shadow
+            .shadow(1.dp),
         title = {
             Text(
                 text = title,
@@ -41,13 +46,14 @@ fun JourneyTopAppBar(
         },
         actions = actions,
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            navigationIconContentColor = MaterialTheme.colorScheme.primary,
-            actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            containerColor = bgColor,
+            titleContentColor = contentColor,
+            navigationIconContentColor = contentColor,
+            actionIconContentColor = contentColor
         )
     )
 }
+
 
 // Preview function for quick testing
 @Preview(showBackground = true)
