@@ -23,4 +23,10 @@ interface JournalDao {
     @Query("SELECT * FROM journal_entries WHERE id = :id LIMIT 1")
     suspend fun getEntryById(id: Int): JournalEntity?
 
+    @Query("""
+        SELECT DISTINCT date(timestamp / 1000, 'unixepoch') AS entryDate
+        FROM journal_entries
+        ORDER BY entryDate DESC
+    """)
+    fun getAllEntryDatesFlow(): Flow<List<String>>
 }

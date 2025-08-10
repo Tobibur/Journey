@@ -7,6 +7,7 @@ import com.tobibur.journey.domain.model.JournalEntry
 import com.tobibur.journey.domain.repository.JournalRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.time.LocalDate
 
 class JournalRepositoryImpl(
     private val dao: JournalDao
@@ -28,4 +29,9 @@ class JournalRepositoryImpl(
         return dao.getEntryById(id)?.toDomain()
     }
 
+    override fun getAllEntryDatesFlow(): Flow<List<LocalDate>> {
+        return dao.getAllEntryDatesFlow().map { dateStrings ->
+            dateStrings.map { LocalDate.parse(it) }
+        }
+    }
 }

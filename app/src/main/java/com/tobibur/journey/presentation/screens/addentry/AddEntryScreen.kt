@@ -1,7 +1,9 @@
 package com.tobibur.journey.presentation.screens.addentry
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,8 +21,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,6 +34,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.tobibur.journey.presentation.components.JourneyTopAppBar
+import com.tobibur.journey.presentation.components.StreakPopup
 import com.tobibur.journey.utils.formatTimestamp
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,6 +50,7 @@ fun AddEntryScreen(
 
     val focusManager = LocalFocusManager.current
 
+    var popupStreak by remember { mutableStateOf<Int?>(null) }
 
     val timestamp by viewModel.timestamp.collectAsState()
     val formattedDate = remember(timestamp) { formatTimestamp(timestamp) }
@@ -78,63 +85,73 @@ fun AddEntryScreen(
                 }
             )
         }
+        viewModel.showStreakPopup.collect { streak ->
+            popupStreak = streak
+        }
     }
 
-
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface)
-            .imePadding()
-            .padding(16.dp)
-    ) {
-
-        BasicTextField(
-            value = title,
-            onValueChange = viewModel::onTitleChange,
-            textStyle = MaterialTheme.typography.headlineSmall.copy(
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.SemiBold
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            singleLine = true,
-            decorationBox = { innerTextField ->
-                if (title.isEmpty()) {
-                    Text(
-                        "Title", style = MaterialTheme.typography.headlineSmall.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    )
-                }
-                innerTextField()
-            }
-        )
-
-        BasicTextField(
-            value = content,
-            onValueChange = viewModel::onContentChange,
-            textStyle = MaterialTheme.typography.bodyLarge.copy(
-                color = MaterialTheme.colorScheme.onSurface
-            ),
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
-            maxLines = Int.MAX_VALUE,
-            decorationBox = { innerTextField ->
-                if (content.isEmpty()) {
-                    Text(
-                        "Start writing your thoughts...",
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                .background(MaterialTheme.colorScheme.surface)
+                .imePadding()
+                .padding(16.dp)
+        ) {
+            BasicTextField(
+                value = title,
+                onValueChange = viewModel::onTitleChange,
+                textStyle = MaterialTheme.typography.headlineSmall.copy(
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                singleLine = true,
+                decorationBox = { innerTextField ->
+                    if (title.isEmpty()) {
+                        Text(
+                            "Title", style = MaterialTheme.typography.headlineSmall.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         )
-                    )
+                    }
+                    innerTextField()
                 }
-                innerTextField()
+            )
+
+            BasicTextField(
+                value = content,
+                onValueChange = viewModel::onContentChange,
+                textStyle = MaterialTheme.typography.bodyLarge.copy(
+                    color = MaterialTheme.colorScheme.onSurface
+                ),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                maxLines = Int.MAX_VALUE,
+                decorationBox = { innerTextField ->
+                    if (content.isEmpty()) {
+                        Text(
+                            "Start writing your thoughts...",
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        )
+                    }
+                    innerTextField()
+                }
+            )
+        }
+        popupStreak?.let { streak ->
+            //add a toast message to show the streak
+            Toast.makeText(LocalContext.current, "streak=$streak", Toast.LENGTH_SHORT).show()
+            StreakPopup(streak) {
+                popupStreak = null // dismiss on close
+                navController.popBackStack()
             }
-        )
+        }
     }
 }
 

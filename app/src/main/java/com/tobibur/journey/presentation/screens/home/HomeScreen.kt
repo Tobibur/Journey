@@ -9,11 +9,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,10 +34,10 @@ fun HomeScreen(
     setTopBar: (@Composable (() -> Unit)) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
-
+    val stats by viewModel.streakStats.collectAsState()
     LaunchedEffect(Unit) {
         setTopBar {
-            JourneyTopAppBar(title = "Journey")
+            JourneyTopAppBar(title = "Journey | \uD83D\uDD25 ${stats.currentStreak} day streak")
         }
     }
     val entries = viewModel.entries.collectAsState().value
@@ -90,5 +90,7 @@ fun HomeScreen(
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen(navController = rememberNavController(), {}) // Replace with a valid NavController in real use
+    HomeScreen(
+        navController = rememberNavController(),
+        {}) // Replace with a valid NavController in real use
 }

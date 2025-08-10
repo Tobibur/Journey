@@ -1,20 +1,26 @@
 package com.tobibur.journey.presentation.screens.addentry
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tobibur.journey.domain.model.JournalEntry
 import com.tobibur.journey.domain.usecase.AddEntryUseCase
 import com.tobibur.journey.domain.usecase.GetEntryByIdUseCase
+import com.tobibur.journey.domain.usecase.GetJournalStreakUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class AddEntryViewModel @Inject constructor(
     private val addEntryUseCase: AddEntryUseCase,
-    private val getEntryUseCase: GetEntryByIdUseCase
+    private val getEntryUseCase: GetEntryByIdUseCase,
+    private val getJournalStreakUseCase: GetJournalStreakUseCase
 ) : ViewModel() {
 
     private val _title = MutableStateFlow("")
@@ -27,6 +33,9 @@ class AddEntryViewModel @Inject constructor(
     val timestamp: StateFlow<Long> = _timestamp
 
     private var currentEntryId: Int = 0
+
+    private val _showStreakPopup = MutableSharedFlow<Int>(replay = 0)
+    val showStreakPopup: SharedFlow<Int> = _showStreakPopup
 
     fun onTitleChange(newTitle: String) {
         _title.value = newTitle
@@ -51,8 +60,10 @@ class AddEntryViewModel @Inject constructor(
         if (title.value.isBlank() && content.value.isBlank()) return
 
         viewModelScope.launch {
+            val streakBefore = getJournalStreakUseCase().first().currentStreak
+            Log.d("AddEntryViewModel", "Streak before adding entry: $streakBefore")
+
             val entry = if (currentEntryId != 0) {
-                // Update existing entry
                 JournalEntry(
                     id = currentEntryId,
                     title = title.value,
@@ -66,8 +77,20 @@ class AddEntryViewModel @Inject constructor(
                     timestamp = System.currentTimeMillis()
                 )
             }
+
             addEntryUseCase(entry)
-            onSaved()
+
+            // Query streak again after insertion (fresh read)
+            val streakAfter = getJournalStreakUseCase().first().currentStreak
+            Log.d("AddEntryViewModel", "Streak after adding entry: $streakAfter")
+
+            if (streakAfter > streakBefore) {
+                _showStreakPopup.emit(streakAfter)
+            } else {
+                onSaved()
+            }
+
         }
     }
+
 }
