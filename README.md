@@ -4,9 +4,9 @@ Journey is a personal journaling app built with Jetpack Compose and Kotlin. It h
 
 ## Screenshots
 
-![Home Screen](screenshots/home.png)
-![Analytics Screen](screenshots/analytics.png)
-![Settings Screen](screenshots/settings.png)
+<img src="screenshots/home.png" width="400"/>
+<img src="screenshots/analytics.png" width="400"/>
+<img src="screenshots/settings.png" width="400"/>
 
 ## Features
 
