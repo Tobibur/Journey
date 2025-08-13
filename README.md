@@ -1,10 +1,14 @@
-# Journey Journal App
+# Journey App
 
 Journey is a personal journaling app built with Jetpack Compose and Kotlin. It helps users record daily entries, analyze their journaling habits, and personalize the app experience.
 
 ## Screenshots
 
-<img src="screenshots/home.png" width="300"/> <img src="screenshots/analytics.png" width="300"/> <img src="screenshots/settings.png" width="300"/>
+<img src="screenshots/home.png" width="250"/> <img src="screenshots/analytics.png" width="250"/> <img src="screenshots/settings.png" width="250"/>
+
+
+## Download apk
+You can download the latest APK from the [Releases](apk-file/app-debug.apk) section of this repository.
 
 ## Features
 
