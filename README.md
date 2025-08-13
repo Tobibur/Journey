@@ -2,10 +2,16 @@
 
 Journey is a personal journaling app built with Jetpack Compose and Kotlin. It helps users record daily entries, analyze their journaling habits, and personalize the app experience.
 
+## Screenshots
+
+![Home Screen](screenshots/home.png)
+![Analytics Screen](screenshots/analytics.png)
+![Settings Screen](screenshots/settings.png)
+
 ## Features
 
 - **Journal Entries:** Add, edit, and view daily journal entries.
-- **Analytics:** Visualize journaling patterns and statistics with Streaks count.
+- **Analytics:** Visualize journaling patterns and statistics with streaks count.
 - **Personalization:** Customize accent color, theme (dark/light/dynamic), and more.
 - **Data & Backup:** Export, import, and clear journal data.
 - **Privacy & Security:** Enable app lock and daily reminders.
@@ -32,8 +38,8 @@ Journey is a personal journaling app built with Jetpack Compose and Kotlin. It h
 
 1. **Clone the repository:**
    ```sh
-   git clone https://github.com/yourusername/journey-journal.git
-   cd journey-journal
+   git clone https://github.com/Tobibur/Journey.git 
+   cd journey
     ```
 2. **Open the project in Android Studio:**
 3. **Sync Gradle:**

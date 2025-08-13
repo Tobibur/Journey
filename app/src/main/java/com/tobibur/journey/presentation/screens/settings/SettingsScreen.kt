@@ -54,7 +54,7 @@ fun SettingsScreen(
             JourneyTopAppBar(
                 title = {
                     Text(
-                        text = "Analytics",
+                        text = "Settings",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Medium
                         ),
