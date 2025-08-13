@@ -8,7 +8,7 @@ Journey is a personal journaling app built with Jetpack Compose and Kotlin. It h
 
 
 ## Download apk
-You can download the latest APK from the [Releases](apk-file/app-debug.apk) section of this repository.
+You can download the latest APK from the [apk-file](apk-file/app-debug.apk) folder of this repository.
 
 ## Features
 
