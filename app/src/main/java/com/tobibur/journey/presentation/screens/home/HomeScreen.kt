@@ -18,6 +18,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -38,7 +41,19 @@ fun HomeScreen(
     val stats by viewModel.streakStats.collectAsState()
     LaunchedEffect(Unit) {
         setTopBar {
-            JourneyTopAppBar(title = "Journey | \uD83D\uDD25 ${stats.currentStreak} day streak")
+            JourneyTopAppBar(title = {
+                Text(
+                    buildAnnotatedString {
+                        append("Journey")
+                        append(" | 🔥 ${stats.currentStreak} day streak")
+                    },
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Medium
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            })
         }
     }
     val entries = viewModel.entries.collectAsState().value

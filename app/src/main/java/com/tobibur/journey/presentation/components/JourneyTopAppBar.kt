@@ -12,15 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JourneyTopAppBar(
-    title: String,
+    title: @Composable () -> Unit,
     navigationIcon: @Composable (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
@@ -31,16 +29,7 @@ fun JourneyTopAppBar(
         modifier = Modifier
             .fillMaxWidth()
             .shadow(1.dp),
-        title = {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Medium
-                ),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        },
+        title = title,
         navigationIcon = {
             navigationIcon?.invoke()
         },
@@ -60,7 +49,7 @@ fun JourneyTopAppBar(
 @Composable
 fun JourneyTopAppBarPreview() {
     JourneyTopAppBar(
-        title = "Journey",
+        title = { Text(text = "Journey") },
         navigationIcon = null,
         actions = {}
     )

@@ -32,18 +32,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tobibur.journey.presentation.components.JourneyTopAppBar
 
 @Composable
 fun SettingsScreen(
-    currentTheme: String = "System",
-    currentFontSize: String = "Medium",
-    currentAccentColor: Color = MaterialTheme.colorScheme.primary,
-    onThemeChange: (String) -> Unit = {},
-    onFontSizeChange: (String) -> Unit = {},
-    onAccentColorChange: (Color) -> Unit = {},
     onExportClick: () -> Unit = {},
     onImportClick: () -> Unit = {},
     onClearDataClick: () -> Unit = {},
@@ -57,7 +52,16 @@ fun SettingsScreen(
     LaunchedEffect(Unit) {
         setTopBar {
             JourneyTopAppBar(
-                title = "Analytics"
+                title = {
+                    Text(
+                        text = "Analytics",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Medium
+                        ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             )
         }
     }
@@ -221,7 +225,8 @@ fun AccentColorPickerDialog(
         Color(0xFF29B6F6), // Light Blue
         Color(0xFF66BB6A), // Green
         Color(0xFFFFCA28), // Amber
-        Color(0xFFFF7043)  // Deep Orange
+        Color(0xFFFF7043),  // Deep Orange
+        Color(0xFFFFB6C1) // Light Pink
     )
 
     AlertDialog(

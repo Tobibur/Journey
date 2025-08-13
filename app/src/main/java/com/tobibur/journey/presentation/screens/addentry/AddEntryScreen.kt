@@ -1,6 +1,5 @@
 package com.tobibur.journey.presentation.screens.addentry
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -25,9 +24,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -61,7 +60,16 @@ fun AddEntryScreen(
         }
         setTopBar {
             JourneyTopAppBar(
-                title = formattedDate,
+                title = {
+                    Text(
+                        text = formattedDate,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Medium
+                        ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -143,8 +151,6 @@ fun AddEntryScreen(
             )
         }
         popupStreak?.let { streak ->
-            //add a toast message to show the streak
-            Toast.makeText(LocalContext.current, "streak=$streak", Toast.LENGTH_SHORT).show()
             StreakPopup(streak) {
                 popupStreak = null // dismiss on close
                 navController.popBackStack()

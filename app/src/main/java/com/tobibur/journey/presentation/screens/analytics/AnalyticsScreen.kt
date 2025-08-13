@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tobibur.journey.presentation.components.JourneyTopAppBar
@@ -42,7 +43,16 @@ fun AnalyticsScreen(
     LaunchedEffect(Unit) {
         setTopBar {
             JourneyTopAppBar(
-                title = "Analytics"
+                title = {
+                    Text(
+                        text = "Analytics",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Medium
+                        ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             )
         }
     }
