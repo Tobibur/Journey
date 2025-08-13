@@ -15,8 +15,8 @@ You can download the latest APK from the [apk-file](apk-file/app-debug.apk) fold
 - **Journal Entries:** Add, edit, and view daily journal entries.
 - **Analytics:** Visualize journaling patterns and statistics with streaks count.
 - **Personalization:** Customize accent color, theme (dark/light/dynamic), and more.
-- **Data & Backup:** Export, import, and clear journal data.
-- **Privacy & Security:** Enable app lock and daily reminders.
+- **Data & Backup:** Export, import, and clear journal data. (WIP)
+- **Privacy & Security:** Enable app lock and daily reminders. (WIP)
 - **Modern UI:** Built with Material 3 and Jetpack Compose.
 
 ## Tech Stack
