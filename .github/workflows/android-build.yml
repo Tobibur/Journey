@@ -48,6 +48,6 @@ jobs:
           artifacts: app/build/outputs/apk/debug/app-debug.apk
           token: ${{ secrets.GITHUB_TOKEN }}
           allowUpdates: true
-          replaceArtifacts: true
+          replacesArtifacts: true
 
 
