@@ -2,13 +2,11 @@
 
 Journey is a personal journaling app built with Jetpack Compose and Kotlin. It helps users record daily entries, analyze their journaling habits, and personalize the app experience.
 
+[![Download APK](https://img.shields.io/badge/Download-APK-blue)](https://github.com/Tobibur/Journey/releases/latest/download/app-debug.apk)
+
 ## Screenshots
 
 <img src="screenshots/home.png" width="250"/> <img src="screenshots/analytics.png" width="250"/> <img src="screenshots/settings.png" width="250"/>
-
-
-## Download apk
-You can download the latest APK from the [apk-file](apk-file/app-debug.apk) folder of this repository.
 
 ## Features
 
