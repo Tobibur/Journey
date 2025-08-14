@@ -3,7 +3,7 @@ name: Build and Release APK
 on:
   push:
     branches:
-      - main  # Runs whenever you push to main branch
+      - master  # Runs whenever you push to main branch
 
 jobs:
   build:
