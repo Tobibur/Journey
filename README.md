@@ -14,7 +14,7 @@ Journey is a personal journaling app built with Jetpack Compose and Kotlin. It h
 - **Analytics:** Visualize journaling patterns and statistics with streaks count.
 - **Personalization:** Customize accent color, theme (dark/light/dynamic), and more.
 - **Data & Backup:** Export, import, and clear journal data. (WIP)
-- **Privacy & Security:** Enable app lock and daily reminders. (WIP)
+- **Privacy & Security:** Enable app lock and daily reminders.
 - **Modern UI:** Built with Material 3 and Jetpack Compose.
 
 ## Tech Stack
