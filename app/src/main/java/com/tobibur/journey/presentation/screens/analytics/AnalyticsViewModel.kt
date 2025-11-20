@@ -51,10 +51,14 @@ class AnalyticsViewModel @Inject constructor(
                     }
                     .sorted()
 
+                val today = LocalDate.now()
+                val entriesToday = entriesByDate[today] ?: 0
+
                 AnalyticsUiState(
                     currentStreak = streakInfo.currentStreak,
                     highestStreak = streakInfo.longestStreak,
                     totalEntries = entries.size,
+                    entriesToday = entriesToday,
                     entriesByDate = entriesByDate,
                     doneDatesThisMonth = doneDatesThisMonth
                 )
@@ -69,6 +73,7 @@ data class AnalyticsUiState(
     val currentStreak: Int = 0,
     val highestStreak: Int = 0,
     val totalEntries: Int = 0,
+    val entriesToday: Int = 0,
     val entriesByDate: Map<LocalDate, Int> = emptyMap(),
     val doneDatesThisMonth: List<LocalDate> = emptyList() // for heatmap
 )

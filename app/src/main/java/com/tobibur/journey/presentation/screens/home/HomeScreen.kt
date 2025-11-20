@@ -1,8 +1,12 @@
 package com.tobibur.journey.presentation.screens.home
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -22,9 +26,15 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
+import com.tobibur.journey.R
 import com.tobibur.journey.presentation.components.ActionIcon
 import com.tobibur.journey.presentation.components.JournalEntryCard
 import com.tobibur.journey.presentation.components.JourneyTopAppBar
@@ -58,12 +68,29 @@ fun HomeScreen(
     }
     val entries = viewModel.entries.collectAsState().value
     if (entries.isEmpty()) {
+        val composition by rememberLottieComposition(
+            LottieCompositionSpec.RawRes(R.raw.empty_ghost)
+        )
         Box(
             modifier = Modifier
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text("No journal entries yet")
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                LottieAnimation(
+                    composition = composition,
+                    iterations = LottieConstants.IterateForever,
+                    modifier = Modifier.size(200.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "No journal entries yet",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     } else {
         LazyColumn(
