@@ -1,8 +1,5 @@
 package com.tobibur.journey.data.local.entity
 
-import com.tobibur.journey.data.local.entity.JournalEntity
-
-
 fun JournalEntity.toDomain(): com.tobibur.journey.domain.model.JournalEntry =
     com.tobibur.journey.domain.model.JournalEntry(
         id = id,

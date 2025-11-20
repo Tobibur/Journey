@@ -20,9 +20,12 @@ class SettingsPreferences @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val dataStore: DataStore<Preferences>
 ) {
-    private val ACCENT_COLOR = intPreferencesKey("accent_color")
-    private val USE_DYNAMIC_COLOR = booleanPreferencesKey("use_dynamic_color")
-    private val DARK_THEME = booleanPreferencesKey("dark_theme")
+    companion object {
+        private val ACCENT_COLOR = intPreferencesKey("accent_color")
+        private val USE_DYNAMIC_COLOR = booleanPreferencesKey("use_dynamic_color")
+        private val DARK_THEME = booleanPreferencesKey("dark_theme")
+        private val APP_LOCK_ENABLED = booleanPreferencesKey("app_lock_enabled")
+    }
 
     val accentColorFlow: Flow<Int> = dataStore.data
         .map { prefs -> prefs[ACCENT_COLOR] ?: Color(0xFF6750A4).toArgb() } // default purple
@@ -32,6 +35,9 @@ class SettingsPreferences @Inject constructor(
 
     val darkThemeFlow: Flow<Boolean> = dataStore.data
         .map { prefs -> prefs[DARK_THEME] ?: isSystemInDarkThemeDefault() }
+
+    val appLockEnabledFlow: Flow<Boolean> = dataStore.data
+        .map { prefs -> prefs[APP_LOCK_ENABLED] ?: false }
 
     suspend fun setAccentColor(colorInt: Int) {
         dataStore.edit { prefs -> prefs[ACCENT_COLOR] = colorInt }
@@ -43,6 +49,10 @@ class SettingsPreferences @Inject constructor(
 
     suspend fun setDarkTheme(enabled: Boolean) {
         dataStore.edit { prefs -> prefs[DARK_THEME] = enabled }
+    }
+
+    suspend fun setAppLockEnabled(enabled: Boolean) {
+        dataStore.edit { prefs -> prefs[APP_LOCK_ENABLED] = enabled }
     }
 
     private fun isSystemInDarkThemeDefault(): Boolean {

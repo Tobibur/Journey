@@ -1,5 +1,7 @@
 package com.tobibur.journey.presentation.screens.settings
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,6 +20,10 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,16 +32,20 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tobibur.journey.presentation.components.JourneyTopAppBar
+import com.tobibur.journey.utils.BiometricAuthManager
+import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsScreen(
@@ -48,6 +58,12 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
     setTopBar: (@Composable (() -> Unit)) -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    // Check biometric availability
+    val isBiometricAvailable = remember { BiometricAuthManager.isBiometricAvailable(context) }
 
     LaunchedEffect(Unit) {
         setTopBar {
@@ -67,11 +83,11 @@ fun SettingsScreen(
     }
 
     val reminderEnabled = remember { mutableStateOf(true) }
-    val appLockEnabled = remember { mutableStateOf(false) }
 
     val accentColorInt by viewModel.accentColor.collectAsState()
     val useDynamicColor by viewModel.useDynamicColor.collectAsState()
     val darkThemeEnabled by viewModel.darkThemeEnabled.collectAsState()
+    val appLockEnabled by viewModel.appLockEnabled.collectAsState()
 
     val accentColor = Color(accentColorInt)
 
@@ -89,12 +105,15 @@ fun SettingsScreen(
         )
     }
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { _ ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
         // Personalization
         item { SectionHeader("Personalization") }
         item {
@@ -128,9 +147,32 @@ fun SettingsScreen(
         // Privacy
         item { SectionHeader("Privacy & Security") }
         item {
-            SwitchSetting("App Lock", appLockEnabled.value) {
-                appLockEnabled.value = it
-                onAppLockToggle(it)
+            SwitchSetting(
+                title = "App Lock",
+                checked = appLockEnabled,
+                enabled = isBiometricAvailable,
+                onDisabledClick = {
+                    scope.launch {
+                        val result = snackbarHostState.showSnackbar(
+                            message = "Biometric authentication not set up",
+                            actionLabel = "Open Settings",
+                            withDismissAction = true
+                        )
+                        if (result == SnackbarResult.ActionPerformed) {
+                            // Open device security settings
+                            val intent = Intent(Settings.ACTION_SECURITY_SETTINGS)
+                            context.startActivity(intent)
+                        }
+                    }
+                }
+            ) { enabled ->
+                if (enabled) {
+                    viewModel.setAppLockEnabled(true)
+                    onAppLockToggle(true)
+                } else {
+                    viewModel.setAppLockEnabled(false)
+                    onAppLockToggle(false)
+                }
             }
         }
 
@@ -152,6 +194,7 @@ fun SettingsScreen(
         item {
             SettingsOption("App Version", "1.0.0")
             HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
+        }
         }
     }
 }
@@ -192,21 +235,32 @@ fun SettingsOption(
 fun SwitchSetting(
     title: String,
     checked: Boolean,
+    enabled: Boolean = true,
+    onDisabledClick: (() -> Unit)? = null,
     onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(enabled = !enabled) {
+                onDisabledClick?.invoke()
+            }
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = title,
             style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            color = if (enabled) {
+                MaterialTheme.colorScheme.onSurface
+            } else {
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+            }
         )
         Switch(
             checked = checked,
+            enabled = enabled,
             onCheckedChange = onCheckedChange
         )
     }

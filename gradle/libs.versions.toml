@@ -1,5 +1,6 @@
 [versions]
-agp = "8.12.2"
+agp = "8.12.3"
+biometric = "1.4.0-alpha03"
 datastorePreferences = "1.1.7"
 konfettiCompose = "2.0.5"
 kotlin = "2.2.10"
@@ -21,6 +22,7 @@ hilt = "2.57.1"
 hiltNavigationCompose = "1.2.0"
 
 [libraries]
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }

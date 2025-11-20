@@ -34,6 +34,12 @@ class SettingsViewModel @Inject constructor(
         false
     )
 
+    val appLockEnabled = prefs.appLockEnabledFlow.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        false
+    )
+
     fun setAccentColor(color: Color) {
         viewModelScope.launch {
             prefs.setAccentColor(color.toArgb())
@@ -49,6 +55,12 @@ class SettingsViewModel @Inject constructor(
     fun setDarkTheme(enabled: Boolean) {
         viewModelScope.launch {
             prefs.setDarkTheme(enabled)
+        }
+    }
+
+    fun setAppLockEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            prefs.setAppLockEnabled(enabled)
         }
     }
 }
