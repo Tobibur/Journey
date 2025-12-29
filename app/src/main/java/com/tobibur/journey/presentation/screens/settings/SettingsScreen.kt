@@ -37,13 +37,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.tobibur.journey.presentation.components.JourneyTopAppBar
 import com.tobibur.journey.utils.BiometricAuthManager
 import kotlinx.coroutines.launch
@@ -109,94 +108,94 @@ fun SettingsScreen(
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-       LazyColumn(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surface)
                 .padding(horizontal = 16.dp),
             contentPadding = PaddingValues(vertical = 8.dp)
         ) {
-        // Personalization
-        item { SectionHeader("Personalization") }
-        item {
-            SettingsOption("Accent Color", "Tap to change") {
-                showColorPicker = true
+            // Personalization
+            item { SectionHeader("Personalization") }
+            item {
+                SettingsOption("Accent Color", "Tap to change") {
+                    showColorPicker = true
+                }
+                HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
+                SwitchSetting("Use Dynamic Theme", useDynamicColor) {
+                    viewModel.setDynamicColor(it)
+                }
+                HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
+                SwitchSetting("Dark Theme", darkThemeEnabled) {
+                    viewModel.setDarkTheme(it)
+                }
             }
-            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
-            SwitchSetting("Use Dynamic Theme", useDynamicColor) {
-                viewModel.setDynamicColor(it)
-            }
-            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
-            SwitchSetting("Dark Theme", darkThemeEnabled) {
-                viewModel.setDarkTheme(it)
-            }
-        }
 
-        // Data & Backup
-        item { SectionHeader("Data & Backup") }
-        item {
-            SettingsOption("Export Journal") { onExportClick() }
-            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
-        }
-        item {
-            SettingsOption("Import Journal") { onImportClick() }
-            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
-        }
-        item {
-            SettingsOption("Clear All Data") { onClearDataClick() }
-        }
+            // Data & Backup
+            item { SectionHeader("Data & Backup") }
+            item {
+                SettingsOption("Export Journal") { onExportClick() }
+                HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
+            }
+            item {
+                SettingsOption("Import Journal") { onImportClick() }
+                HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
+            }
+            item {
+                SettingsOption("Clear All Data") { onClearDataClick() }
+            }
 
-        // Privacy
-        item { SectionHeader("Privacy & Security") }
-        item {
-            SwitchSetting(
-                title = "App Lock",
-                checked = appLockEnabled,
-                enabled = isBiometricAvailable,
-                onDisabledClick = {
-                    scope.launch {
-                        val result = snackbarHostState.showSnackbar(
-                            message = "Biometric authentication not set up",
-                            actionLabel = "Open Settings",
-                            withDismissAction = true
-                        )
-                        if (result == SnackbarResult.ActionPerformed) {
-                            // Open device security settings
-                            val intent = Intent(Settings.ACTION_SECURITY_SETTINGS)
-                            context.startActivity(intent)
+            // Privacy
+            item { SectionHeader("Privacy & Security") }
+            item {
+                SwitchSetting(
+                    title = "App Lock",
+                    checked = appLockEnabled,
+                    enabled = isBiometricAvailable,
+                    onDisabledClick = {
+                        scope.launch {
+                            val result = snackbarHostState.showSnackbar(
+                                message = "Biometric authentication not set up",
+                                actionLabel = "Open Settings",
+                                withDismissAction = true
+                            )
+                            if (result == SnackbarResult.ActionPerformed) {
+                                // Open device security settings
+                                val intent = Intent(Settings.ACTION_SECURITY_SETTINGS)
+                                context.startActivity(intent)
+                            }
                         }
                     }
-                }
-            ) { enabled ->
-                if (enabled) {
-                    viewModel.setAppLockEnabled(true)
-                    onAppLockToggle(true)
-                } else {
-                    viewModel.setAppLockEnabled(false)
-                    onAppLockToggle(false)
+                ) { enabled ->
+                    if (enabled) {
+                        viewModel.setAppLockEnabled(true)
+                        onAppLockToggle(true)
+                    } else {
+                        viewModel.setAppLockEnabled(false)
+                        onAppLockToggle(false)
+                    }
                 }
             }
-        }
 
-        // Notifications
-        item { SectionHeader("Notifications") }
-        item {
-            SwitchSetting("Daily Reminder", reminderEnabled.value) {
-                reminderEnabled.value = it
-                onReminderToggle(it)
+            // Notifications
+            item { SectionHeader("Notifications") }
+            item {
+                SwitchSetting("Daily Reminder", reminderEnabled.value) {
+                    reminderEnabled.value = it
+                    onReminderToggle(it)
+                }
+                HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
             }
-            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
-        }
-        item {
-            SettingsOption("Reminder Time", "Set time") { onReminderTimeClick() }
-        }
+            item {
+                SettingsOption("Reminder Time", "Set time") { onReminderTimeClick() }
+            }
 
-        // About
-        item { SectionHeader("About") }
-        item {
-            SettingsOption("App Version", "1.0.0")
-            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
-        }
+            // About
+            item { SectionHeader("About") }
+            item {
+                SettingsOption("App Version", "1.0.0")
+                HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
+            }
         }
 
         SnackbarHost(

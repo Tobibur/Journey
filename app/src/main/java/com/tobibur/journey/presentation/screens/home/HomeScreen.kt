@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -27,7 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.airbnb.lottie.compose.LottieAnimation
@@ -40,6 +42,10 @@ import com.tobibur.journey.presentation.components.JournalEntryCard
 import com.tobibur.journey.presentation.components.JourneyTopAppBar
 import com.tobibur.journey.presentation.components.SwipeableItemWithActions
 import com.tobibur.journey.presentation.navigation.Screen
+import java.time.Instant
+import java.time.YearMonth
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,37 +99,64 @@ fun HomeScreen(
             }
         }
     } else {
+        // Group entries by month and year
+        val entriesByMonth = entries.groupBy { entry ->
+            val date = Instant.ofEpochMilli(entry.timestamp)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+            YearMonth.of(date.year, date.month)
+        }.toSortedMap(compareByDescending { it })
+
+        val monthFormatter = DateTimeFormatter.ofPattern("MMM yyyy")
+
         LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {
-            items(
-                items = entries,
-                key = { it.id }) { entry ->
-                SwipeableItemWithActions(
-                    actions = {
-                        ActionIcon(
-                            onClick = {
-                                navController.navigate(Screen.ViewEntry.createRoute(entry.id))
-                            },
-                            backgroundColor = MaterialTheme.colorScheme.tertiary,
-                            icon = Icons.Default.Edit,
-                            modifier = Modifier.fillMaxHeight()
-                        )
-                        ActionIcon(
-                            onClick = {
-                                viewModel.deleteEntry(entry)
-                            },
-                            backgroundColor = Color(0xFFD11A2A),
-                            icon = Icons.Default.Delete,
-                            modifier = Modifier.fillMaxHeight()
-                        )
-                    }
-                ) {
-                    JournalEntryCard(
-                        entry = entry, onClick = {
-                            navController.navigate(Screen.ViewEntry.createRoute(entry.id))
-                        }
+            entriesByMonth.forEach { (yearMonth, monthEntries) ->
+                // Month-Year header
+                item(key = "month_${yearMonth}") {
+                    Text(
+                        text = yearMonth.format(monthFormatter),
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
                     )
+                }
+
+                // Entries for this month
+                items(
+                    items = monthEntries,
+                    key = { it.id }
+                ) { entry ->
+                    SwipeableItemWithActions(
+                        actions = {
+                            ActionIcon(
+                                onClick = {
+                                    navController.navigate(Screen.ViewEntry.createRoute(entry.id))
+                                },
+                                backgroundColor = MaterialTheme.colorScheme.tertiary,
+                                icon = Icons.Default.Edit,
+                                modifier = Modifier.fillMaxHeight()
+                            )
+                            ActionIcon(
+                                onClick = {
+                                    viewModel.deleteEntry(entry)
+                                },
+                                backgroundColor = Color(0xFFD11A2A),
+                                icon = Icons.Default.Delete,
+                                modifier = Modifier.fillMaxHeight()
+                            )
+                        }
+                    ) {
+                        Column {
+                            JournalEntryCard(
+                                entry = entry, onClick = {
+                                    navController.navigate(Screen.ViewEntry.createRoute(entry.id))
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }

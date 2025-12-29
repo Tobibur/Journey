@@ -17,7 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.tobibur.journey.presentation.navigation.JournalNavHost
 import com.tobibur.journey.presentation.screens.settings.SettingsViewModel
 import com.tobibur.journey.ui.theme.JourneyTheme
@@ -30,8 +30,8 @@ class MainActivity : FragmentActivity() {
     private var appLockRequired = mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
         setContent {
             val settingsViewModel: SettingsViewModel = hiltViewModel()
             val appLockEnabled by settingsViewModel.appLockEnabled.collectAsState()
