@@ -1,6 +1,7 @@
 package com.tobibur.journey.presentation.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,19 +42,24 @@ fun JournalEntryCard(
             .background(color = MaterialTheme.colorScheme.background)
             .padding(horizontal = 16.dp, vertical = 8.dp)) {
 
-        Box(
+        Column(
             modifier = Modifier
-                .background(
-                    color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f),
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                     shape = RoundedCornerShape(8.dp)
-                )
-                .padding(vertical = 8.dp, horizontal = 16.dp)
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween
+            Box(
+                modifier = Modifier
+                    .background(
+                        color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f),
+                        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
+                    )
+                    .padding(vertical = 4.dp, horizontal = 16.dp)
             ) {
-
                 Text(
                     dayOfWeek,
                     style = MaterialTheme.typography.titleSmall.copy(
@@ -62,12 +68,13 @@ fun JournalEntryCard(
                         )
                     )
                 )
-
-                Text(
-                    date,
-                    style = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onTertiary)
-                )
             }
+
+            Text(
+                date,
+                style = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                modifier = Modifier.padding(vertical = 2.dp)
+            )
         }
 
         Spacer(modifier = Modifier.width(16.dp))
