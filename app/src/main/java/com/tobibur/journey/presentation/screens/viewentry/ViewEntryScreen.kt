@@ -1,5 +1,6 @@
 package com.tobibur.journey.presentation.screens.viewentry
 
+import android.R.attr.text
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -33,6 +34,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.tobibur.journey.R
+import com.tobibur.journey.presentation.components.JourneyDialog
 import com.tobibur.journey.presentation.components.JourneyTopAppBar
 import com.tobibur.journey.presentation.navigation.Screen
 import com.tobibur.journey.utils.formatTimestamp
@@ -102,24 +105,19 @@ fun ViewEntryScreen(
     }
 
     if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text("Delete Entry?") },
-            text = { Text("Are you sure you want to delete this journal entry? This action cannot be undone.") },
+        JourneyDialog(
+            modifier = Modifier,
+            lottieRes = R.raw.thumbsupbird,
+            title = "Delete Entry?",
+            description = "Are you sure you want to delete this journal entry? This action cannot be undone.",
             confirmButton = {
-                TextButton(onClick = {
                     showDialog = false
                     viewModel.deleteEntry {
                         navController.popBackStack() // Go back after delete
                     }
-                }) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
-                }
             },
             dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text("Cancel")
-                }
+                showDialog = false
             }
         )
     }
