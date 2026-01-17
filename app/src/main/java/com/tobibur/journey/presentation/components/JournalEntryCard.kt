@@ -55,7 +55,7 @@ fun JournalEntryCard(
             Box(
                 modifier = Modifier
                     .background(
-                        color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f),
                         shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
                     )
                     .padding(vertical = 4.dp, horizontal = 16.dp)
@@ -63,9 +63,7 @@ fun JournalEntryCard(
                 Text(
                     dayOfWeek,
                     style = MaterialTheme.typography.titleSmall.copy(
-                        color = MaterialTheme.colorScheme.onTertiary.copy(
-                            alpha = 0.8f
-                        )
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 )
             }
