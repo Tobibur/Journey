@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -44,6 +43,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.tobibur.journey.presentation.components.JourneyTopAppBar
+import com.tobibur.journey.ui.theme.AppThemeType
 import com.tobibur.journey.utils.BiometricAuthManager
 import kotlinx.coroutines.launch
 
@@ -84,18 +84,16 @@ fun SettingsScreen(
 
     val reminderEnabled = remember { mutableStateOf(true) }
 
-    val accentColorInt by viewModel.accentColor.collectAsState()
+    val appThemeColor by viewModel.appThemeType.collectAsState()
     val useDynamicColor by viewModel.useDynamicColor.collectAsState()
     val darkThemeEnabled by viewModel.darkThemeEnabled.collectAsState()
     val appLockEnabled by viewModel.appLockEnabled.collectAsState()
-
-    val accentColor = Color(accentColorInt)
 
     var showColorPicker by remember { mutableStateOf(false) }
 
     if (showColorPicker) {
         AccentColorPickerDialog(
-            currentColor = accentColor,
+            currentColor = appThemeColor.name,
             onColorSelected = {
                 viewModel.setAccentColor(it) // Save ARGB int
                 viewModel.setDynamicColor(false)
@@ -108,24 +106,23 @@ fun SettingsScreen(
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
+        val dividerPadding = Modifier.padding(vertical = 8.dp)
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface)
-                .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(vertical = 8.dp)
+                .background(MaterialTheme.colorScheme.surface),
         ) {
             // Personalization
             item { SectionHeader("Personalization") }
             item {
-                SettingsOption("Accent Color", "Tap to change") {
+                SettingsOption("Theme Color", "Tap to change") {
                     showColorPicker = true
                 }
-                HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
+                HorizontalDivider(dividerPadding, DividerDefaults.Thickness, DividerDefaults.color)
                 SwitchSetting("Use Dynamic Theme", useDynamicColor) {
                     viewModel.setDynamicColor(it)
                 }
-                HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
+                HorizontalDivider(dividerPadding, DividerDefaults.Thickness, DividerDefaults.color)
                 SwitchSetting("Dark Theme", darkThemeEnabled) {
                     viewModel.setDarkTheme(it)
                 }
@@ -135,11 +132,11 @@ fun SettingsScreen(
             item { SectionHeader("Data & Backup") }
             item {
                 SettingsOption("Export Journal") { onExportClick() }
-                HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
+                HorizontalDivider(dividerPadding, DividerDefaults.Thickness, DividerDefaults.color)
             }
             item {
                 SettingsOption("Import Journal") { onImportClick() }
-                HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
+                HorizontalDivider(dividerPadding, DividerDefaults.Thickness, DividerDefaults.color)
             }
             item {
                 SettingsOption("Clear All Data") { onClearDataClick() }
@@ -184,7 +181,7 @@ fun SettingsScreen(
                     reminderEnabled.value = it
                     onReminderToggle(it)
                 }
-                HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
+                HorizontalDivider(dividerPadding, DividerDefaults.Thickness, DividerDefaults.color)
             }
             item {
                 SettingsOption("Reminder Time", "Set time") { onReminderTimeClick() }
@@ -194,7 +191,7 @@ fun SettingsScreen(
             item { SectionHeader("About") }
             item {
                 SettingsOption("App Version", "1.0.0")
-                HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
+                HorizontalDivider(dividerPadding, DividerDefaults.Thickness, DividerDefaults.color)
             }
         }
 
@@ -207,11 +204,13 @@ fun SettingsScreen(
 
 @Composable
 fun SectionHeader(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-        color = MaterialTheme.colorScheme.primary,
-    )
+    Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.primary,
+        )
+    }
 }
 
 @Composable
@@ -224,7 +223,7 @@ fun SettingsOption(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(vertical = 12.dp)
+            .padding(horizontal = 16.dp)
     ) {
         Text(text = title, style = MaterialTheme.typography.bodyLarge)
         if (!subtitle.isNullOrEmpty()) {
@@ -251,7 +250,7 @@ fun SwitchSetting(
             .clickable(enabled = !enabled) {
                 onDisabledClick?.invoke()
             }
-            .padding(vertical = 12.dp),
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -274,19 +273,19 @@ fun SwitchSetting(
 
 @Composable
 fun AccentColorPickerDialog(
-    currentColor: Color,
-    onColorSelected: (Color) -> Unit,
+    currentColor: String,
+    onColorSelected: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val colors = listOf(
-        Color(0xFFEF5350), // Red
-        Color(0xFFAB47BC), // Purple
-        Color(0xFF5C6BC0), // Indigo
-        Color(0xFF29B6F6), // Light Blue
-        Color(0xFF66BB6A), // Green
-        Color(0xFFFFCA28), // Amber
-        Color(0xFFFF7043),  // Deep Orange
-        Color(0xFFFFB6C1) // Light Pink
+    val colors = mapOf<Color, String>(
+        Color(0xFFEF5350) to AppThemeType.RED.name,// Red
+        Color(0xFFAB47BC) to AppThemeType.PURPLE.name, // Purple
+        Color(0xFF5C6BC0) to AppThemeType.INDIGO.name, // Indigo
+        Color(0xFF29B6F6) to AppThemeType.LIGHT_BLUE.name, // Light Blue
+        Color(0xFF66BB6A) to AppThemeType.GREEN.name, // Green
+        Color(0xFFFFCA28) to AppThemeType.AMBER.name, // Amber
+        Color(0xFFFF7043) to AppThemeType.DEEP_ORANGE.name,  // Deep Orange
+        Color(0xFFFFB6C1) to AppThemeType.PINK.name// Light Pink
     )
 
     AlertDialog(
@@ -302,13 +301,13 @@ fun AccentColorPickerDialog(
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)
-                            .background(color)
+                            .background(color.key)
                             .border(
-                                width = if (color == currentColor) 3.dp else 1.dp,
-                                color = if (color == currentColor) MaterialTheme.colorScheme.onSurface else Color.Gray,
+                                width = if (color.value == currentColor) 3.dp else 1.dp,
+                                color = if (color.value == currentColor) MaterialTheme.colorScheme.onSurface else Color.Gray,
                                 shape = CircleShape
                             )
-                            .clickable { onColorSelected(color) }
+                            .clickable { onColorSelected(color.value) }
                     )
                 }
             }

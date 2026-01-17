@@ -1,6 +1,5 @@
 package com.tobibur.journey.presentation.screens.viewentry
 
-import android.R.attr.text
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -13,13 +12,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -111,10 +108,10 @@ fun ViewEntryScreen(
             title = "Delete Entry?",
             description = "Are you sure you want to delete this journal entry? This action cannot be undone.",
             confirmButton = {
-                    showDialog = false
-                    viewModel.deleteEntry {
-                        navController.popBackStack() // Go back after delete
-                    }
+                showDialog = false
+                viewModel.deleteEntry {
+                    navController.popBackStack() // Go back after delete
+                }
             },
             dismissButton = {
                 showDialog = false

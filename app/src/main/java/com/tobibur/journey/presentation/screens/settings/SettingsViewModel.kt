@@ -1,10 +1,9 @@
 package com.tobibur.journey.presentation.screens.settings
 
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tobibur.journey.data.local.datastore.SettingsPreferences
+import com.tobibur.journey.ui.theme.AppThemeType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -16,10 +15,10 @@ class SettingsViewModel @Inject constructor(
     private val prefs: SettingsPreferences
 ) : ViewModel() {
 
-    val accentColor = prefs.accentColorFlow.stateIn(
+    val appThemeType = prefs.appThemeTypeFlow.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
-        Color(0xFF6750A4).toArgb()
+        AppThemeType.PINK
     )
 
     val useDynamicColor = prefs.useDynamicColorFlow.stateIn(
@@ -40,9 +39,9 @@ class SettingsViewModel @Inject constructor(
         false
     )
 
-    fun setAccentColor(color: Color) {
+    fun setAccentColor(appThemeType: String) {
         viewModelScope.launch {
-            prefs.setAccentColor(color.toArgb())
+            prefs.setAppThemeType(AppThemeType.valueOf(appThemeType))
         }
     }
 

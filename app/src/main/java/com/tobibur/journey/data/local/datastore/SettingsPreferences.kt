@@ -2,13 +2,12 @@ package com.tobibur.journey.data.local.datastore
 
 import android.content.Context
 import android.content.res.Configuration
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
+import com.tobibur.journey.ui.theme.AppThemeType
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -21,14 +20,11 @@ class SettingsPreferences @Inject constructor(
     private val dataStore: DataStore<Preferences>
 ) {
     companion object {
-        private val ACCENT_COLOR = intPreferencesKey("accent_color")
         private val USE_DYNAMIC_COLOR = booleanPreferencesKey("use_dynamic_color")
         private val DARK_THEME = booleanPreferencesKey("dark_theme")
         private val APP_LOCK_ENABLED = booleanPreferencesKey("app_lock_enabled")
+        private val APP_THEME_TYPE = stringPreferencesKey("app_theme_type")
     }
-
-    val accentColorFlow: Flow<Int> = dataStore.data
-        .map { prefs -> prefs[ACCENT_COLOR] ?: Color(0xFF6750A4).toArgb() } // default purple
 
     val useDynamicColorFlow: Flow<Boolean> = dataStore.data
         .map { prefs -> prefs[USE_DYNAMIC_COLOR] ?: true }
@@ -39,9 +35,15 @@ class SettingsPreferences @Inject constructor(
     val appLockEnabledFlow: Flow<Boolean> = dataStore.data
         .map { prefs -> prefs[APP_LOCK_ENABLED] ?: false }
 
-    suspend fun setAccentColor(colorInt: Int) {
-        dataStore.edit { prefs -> prefs[ACCENT_COLOR] = colorInt }
-    }
+    val appThemeTypeFlow: Flow<AppThemeType> = dataStore.data
+        .map { prefs ->
+            val name = prefs[APP_THEME_TYPE] ?: AppThemeType.PINK.name
+            try {
+                AppThemeType.valueOf(name)
+            } catch (e: IllegalArgumentException) {
+                AppThemeType.PINK
+            }
+        }
 
     suspend fun setUseDynamicColor(enabled: Boolean) {
         dataStore.edit { prefs -> prefs[USE_DYNAMIC_COLOR] = enabled }
@@ -53,6 +55,10 @@ class SettingsPreferences @Inject constructor(
 
     suspend fun setAppLockEnabled(enabled: Boolean) {
         dataStore.edit { prefs -> prefs[APP_LOCK_ENABLED] = enabled }
+    }
+
+    suspend fun setAppThemeType(type: AppThemeType) {
+        dataStore.edit { prefs -> prefs[APP_THEME_TYPE] = type.name }
     }
 
     private fun isSystemInDarkThemeDefault(): Boolean {
