@@ -3,16 +3,22 @@ package com.tobibur.journey.presentation.screens.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tobibur.journey.data.UiState
+import com.tobibur.journey.domain.model.JournalEntriesByMonth
 import com.tobibur.journey.domain.model.JournalEntry
 import com.tobibur.journey.domain.model.StreakStats
 import com.tobibur.journey.domain.usecase.DeleteEntryUseCase
 import com.tobibur.journey.domain.usecase.GetJournalEntriesUseCase
 import com.tobibur.journey.domain.usecase.GetJournalStreakUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.time.Instant
+import java.time.YearMonth
+import java.time.ZoneId
 import javax.inject.Inject
 
 @HiltViewModel
@@ -29,26 +35,38 @@ class HomeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            launch {
-                getJournalStreakUseCase().collect { stats ->
-                    _streakStats.value = stats
-                }
+            getJournalStreakUseCase().collect { stats ->
+                _streakStats.value = stats
             }
+        }
 
-            launch {
-                try {
-                    //delay(3000) test delay to see loading state
-                    getEntriesUseCase().collect {
-                        _uiState.value = UiState.Success(it)
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    _uiState.value = UiState.Error("No entries found")
+        viewModelScope.launch {
+            try {
+                //delay(3000) test delay to see loading state
+                getEntriesUseCase().collect {
+                    val groupedEntries =
+                        withContext(Dispatchers.Default) {
+                            groupEntriesByMonth(it)
+                        }
+                    _uiState.value = UiState.Success(groupedEntries)
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _uiState.value = UiState.Error("No entries found")
             }
         }
     }
 
+    fun groupEntriesByMonth(entries: List<JournalEntry>): List<JournalEntriesByMonth> {
+        return entries.groupBy { entry ->
+            val date = Instant.ofEpochMilli(entry.timestamp)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+            YearMonth.of(date.year, date.month)
+        }.map { (yearMonth, monthEntries) ->
+            JournalEntriesByMonth(yearMonth, monthEntries)
+        }.sortedByDescending { it.yearMonth }
+    }
 
     fun deleteEntry(entry: JournalEntry, onDeleted: () -> Unit = {}) {
         viewModelScope.launch {

@@ -20,7 +20,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,9 +44,6 @@ import com.tobibur.journey.presentation.components.JournalEntryCard
 import com.tobibur.journey.presentation.components.JourneyTopAppBar
 import com.tobibur.journey.presentation.components.SwipeableItemWithActions
 import com.tobibur.journey.presentation.navigation.Screen
-import java.time.Instant
-import java.time.YearMonth
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,7 +53,7 @@ fun HomeScreen(
     setTopBar: (@Composable (() -> Unit)) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
-    val stats by viewModel.streakStats.collectAsState()
+    val stats by viewModel.streakStats.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) {
         setTopBar {
             JourneyTopAppBar(title = {
@@ -78,16 +74,14 @@ fun HomeScreen(
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     when (uiState.value) {
         UiState.Loading -> {
-
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
-
         }
 
         is UiState.Success -> {
-            val entries = (uiState.value as UiState.Success).entries
-            if (entries.isEmpty()) {
+            val entriesByMonth = (uiState.value as UiState.Success).entries
+            if (entriesByMonth.isEmpty()) {
                 val composition by rememberLottieComposition(
                     LottieCompositionSpec.RawRes(R.raw.empty_ghost)
                 )
@@ -113,14 +107,6 @@ fun HomeScreen(
                     }
                 }
             } else {
-                // Group entries by month and year
-                val entriesByMonth = entries.groupBy { entry ->
-                    val date = Instant.ofEpochMilli(entry.timestamp)
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDate()
-                    YearMonth.of(date.year, date.month)
-                }.toSortedMap(compareByDescending { it })
-
                 val monthFormatter = DateTimeFormatter.ofPattern("MMM yyyy")
 
                 LazyColumn(
