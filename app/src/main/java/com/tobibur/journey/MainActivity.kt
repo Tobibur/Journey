@@ -18,11 +18,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.lifecycleScope
+import com.airbnb.lottie.LottieCompositionFactory
 import com.tobibur.journey.presentation.navigation.JournalNavHost
 import com.tobibur.journey.presentation.screens.settings.SettingsViewModel
 import com.tobibur.journey.ui.theme.JourneyTheme
 import com.tobibur.journey.utils.BiometricAuthManager
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : FragmentActivity() {
@@ -32,6 +36,9 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+
+        preloadLottieAnimations()
+
         setContent {
             val settingsViewModel: SettingsViewModel = hiltViewModel()
             val appLockEnabled by settingsViewModel.appLockEnabled.collectAsState()
@@ -64,6 +71,14 @@ class MainActivity : FragmentActivity() {
                         )
                     }
                 }
+            }
+        }
+    }
+
+    private fun preloadLottieAnimations() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            listOf(R.raw.empty_ghost, R.raw.thumbsupbird).forEach { resId ->
+                LottieCompositionFactory.fromRawRes(this@MainActivity, resId)
             }
         }
     }
