@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,6 +31,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.airbnb.lottie.compose.LottieAnimation
@@ -37,6 +39,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.tobibur.journey.R
+import com.tobibur.journey.data.UiState
 import com.tobibur.journey.presentation.components.ActionIcon
 import com.tobibur.journey.presentation.components.JournalEntryCard
 import com.tobibur.journey.presentation.components.JourneyTopAppBar
@@ -72,93 +75,118 @@ fun HomeScreen(
             })
         }
     }
-    val entries = viewModel.entries.collectAsState().value
-    if (entries.isEmpty()) {
-        val composition by rememberLottieComposition(
-            LottieCompositionSpec.RawRes(R.raw.empty_ghost)
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                LottieAnimation(
-                    composition = composition,
-                    iterations = LottieConstants.IterateForever,
-                    modifier = Modifier.size(200.dp)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "No journal entries yet",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+    when (uiState.value) {
+        UiState.Loading -> {
+
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
             }
+
         }
-    } else {
-        // Group entries by month and year
-        val entriesByMonth = entries.groupBy { entry ->
-            val date = Instant.ofEpochMilli(entry.timestamp)
-                .atZone(ZoneId.systemDefault())
-                .toLocalDate()
-            YearMonth.of(date.year, date.month)
-        }.toSortedMap(compareByDescending { it })
 
-        val monthFormatter = DateTimeFormatter.ofPattern("MMM yyyy")
-
-        LazyColumn(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            entriesByMonth.forEach { (yearMonth, monthEntries) ->
-                // Month-Year header
-                item(key = "month_${yearMonth}") {
-                    Text(
-                        text = yearMonth.format(monthFormatter),
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                    )
+        is UiState.Success -> {
+            val entries = (uiState.value as UiState.Success).entries
+            if (entries.isEmpty()) {
+                val composition by rememberLottieComposition(
+                    LottieCompositionSpec.RawRes(R.raw.empty_ghost)
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        LottieAnimation(
+                            composition = composition,
+                            iterations = LottieConstants.IterateForever,
+                            modifier = Modifier.size(200.dp)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "No journal entries yet",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
+            } else {
+                // Group entries by month and year
+                val entriesByMonth = entries.groupBy { entry ->
+                    val date = Instant.ofEpochMilli(entry.timestamp)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                    YearMonth.of(date.year, date.month)
+                }.toSortedMap(compareByDescending { it })
 
-                // Entries for this month
-                items(
-                    items = monthEntries,
-                    key = { it.id }
-                ) { entry ->
-                    SwipeableItemWithActions(
-                        actions = {
-                            ActionIcon(
-                                onClick = {
-                                    navController.navigate(Screen.ViewEntry.createRoute(entry.id))
-                                },
-                                backgroundColor = MaterialTheme.colorScheme.tertiary,
-                                icon = Icons.Default.Edit,
-                                modifier = Modifier.fillMaxHeight()
-                            )
-                            ActionIcon(
-                                onClick = {
-                                    viewModel.deleteEntry(entry)
-                                },
-                                backgroundColor = Color(0xFFD11A2A),
-                                icon = Icons.Default.Delete,
-                                modifier = Modifier.fillMaxHeight()
+                val monthFormatter = DateTimeFormatter.ofPattern("MMM yyyy")
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    entriesByMonth.forEach { (yearMonth, monthEntries) ->
+                        // Month-Year header
+                        item(key = "month_${yearMonth}") {
+                            Text(
+                                text = yearMonth.format(monthFormatter),
+                                style = MaterialTheme.typography.headlineSmall,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
                             )
                         }
-                    ) {
-                        Column {
-                            JournalEntryCard(
-                                entry = entry, onClick = {
-                                    navController.navigate(Screen.ViewEntry.createRoute(entry.id))
+
+                        // Entries for this month
+                        items(
+                            items = monthEntries,
+                            key = { it.id }
+                        ) { entry ->
+                            SwipeableItemWithActions(
+                                actions = {
+                                    ActionIcon(
+                                        onClick = {
+                                            navController.navigate(
+                                                Screen.ViewEntry.createRoute(
+                                                    entry.id
+                                                )
+                                            )
+                                        },
+                                        backgroundColor = MaterialTheme.colorScheme.tertiary,
+                                        icon = Icons.Default.Edit,
+                                        modifier = Modifier.fillMaxHeight()
+                                    )
+                                    ActionIcon(
+                                        onClick = {
+                                            viewModel.deleteEntry(entry)
+                                        },
+                                        backgroundColor = Color(0xFFD11A2A),
+                                        icon = Icons.Default.Delete,
+                                        modifier = Modifier.fillMaxHeight()
+                                    )
                                 }
-                            )
+                            ) {
+                                Column {
+                                    JournalEntryCard(
+                                        entry = entry, onClick = {
+                                            navController.navigate(
+                                                Screen.ViewEntry.createRoute(
+                                                    entry.id
+                                                )
+                                            )
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
+        }
+
+        is UiState.Error -> {
+            Text(text = (uiState.value as UiState.Error).message)
         }
     }
 }
