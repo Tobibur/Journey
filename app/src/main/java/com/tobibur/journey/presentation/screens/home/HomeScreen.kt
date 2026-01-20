@@ -82,30 +82,7 @@ fun HomeScreen(
         is UiState.Success -> {
             val entriesByMonth = (uiState.value as UiState.Success).entries
             if (entriesByMonth.isEmpty()) {
-                val composition by rememberLottieComposition(
-                    LottieCompositionSpec.RawRes(R.raw.empty_ghost)
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        LottieAnimation(
-                            composition = composition,
-                            iterations = LottieConstants.IterateForever,
-                            modifier = Modifier.size(200.dp)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "No journal entries yet",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+                NoEntriesToLoad()
             } else {
                 val monthFormatter = DateTimeFormatter.ofPattern("MMM yyyy")
 
@@ -172,7 +149,36 @@ fun HomeScreen(
         }
 
         is UiState.Error -> {
-            Text(text = (uiState.value as UiState.Error).message)
+            val message = (uiState.value as UiState.Error).message
+            NoEntriesToLoad(message)
+        }
+    }
+}
+
+@Composable
+private fun NoEntriesToLoad(message: String = "No journal entries found") {
+    val composition by rememberLottieComposition(
+        LottieCompositionSpec.RawRes(R.raw.empty_ghost)
+    )
+    Box(
+        modifier = Modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            LottieAnimation(
+                composition = composition,
+                iterations = LottieConstants.IterateForever,
+                modifier = Modifier.size(200.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

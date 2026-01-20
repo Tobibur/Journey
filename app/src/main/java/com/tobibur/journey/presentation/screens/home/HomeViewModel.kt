@@ -52,7 +52,7 @@ class HomeViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                _uiState.value = UiState.Error("No entries found")
+                _uiState.value = UiState.Error("No journal entries found")
             }
         }
     }
