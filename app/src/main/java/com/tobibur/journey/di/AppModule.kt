@@ -15,6 +15,9 @@ import com.tobibur.journey.domain.usecase.DeleteEntryUseCase
 import com.tobibur.journey.domain.usecase.GetEntryByIdUseCase
 import com.tobibur.journey.domain.usecase.GetJournalEntriesUseCase
 import com.tobibur.journey.domain.usecase.GetJournalStreakUseCase
+import com.tobibur.journey.domain.usecase.ExportJournalToPdfUseCase
+import com.tobibur.journey.utils.JournalPdfGenerator
+import com.tobibur.journey.utils.PdfFileManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -74,5 +77,27 @@ object AppModule {
     @Singleton
     fun provideDataStore(@ApplicationContext context: Context): DataStore<Preferences> {
         return context.dataStore
+    }
+
+    @Provides
+    @Singleton
+    fun provideJournalPdfGenerator(): JournalPdfGenerator {
+        return JournalPdfGenerator()
+    }
+
+    @Provides
+    @Singleton
+    fun providePdfFileManager(@ApplicationContext context: Context): PdfFileManager {
+        return PdfFileManager(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideExportJournalToPdfUseCase(
+        repository: JournalRepository,
+        pdfGenerator: JournalPdfGenerator,
+        pdfFileManager: PdfFileManager
+    ): ExportJournalToPdfUseCase {
+        return ExportJournalToPdfUseCase(repository, pdfGenerator, pdfFileManager)
     }
 }

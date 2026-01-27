@@ -1,5 +1,6 @@
 package com.tobibur.journey.presentation.screens.settings
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.provider.Settings
 import androidx.compose.foundation.background
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -41,6 +43,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.tobibur.journey.presentation.components.JourneyTopAppBar
 import com.tobibur.journey.ui.theme.AppThemeType
@@ -49,7 +52,6 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsScreen(
-    onExportClick: () -> Unit = {},
     onImportClick: () -> Unit = {},
     onClearDataClick: () -> Unit = {},
     onReminderToggle: (Boolean) -> Unit = {},
@@ -64,6 +66,9 @@ fun SettingsScreen(
 
     // Check biometric availability
     val isBiometricAvailable = remember { BiometricAuthManager.isBiometricAvailable(context) }
+
+    // Export state
+    val exportState by viewModel.exportState.collectAsState()
 
     LaunchedEffect(Unit) {
         setTopBar {
@@ -82,6 +87,37 @@ fun SettingsScreen(
         }
     }
 
+    // Handle export state changes
+    LaunchedEffect(exportState) {
+        when (val state = exportState) {
+            is ExportUiState.Success -> {
+                snackbarHostState.showSnackbar(
+                    message = "Exported ${state.entryCount} entries to Downloads"
+                )
+                // Open PDF
+                try {
+                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                        setDataAndType(state.uri, "application/pdf")
+                        flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    }
+                    context.startActivity(intent)
+                } catch (e: ActivityNotFoundException) {
+                    snackbarHostState.showSnackbar("No PDF viewer app found")
+                }
+                viewModel.resetExportState()
+            }
+            is ExportUiState.NoEntries -> {
+                snackbarHostState.showSnackbar("No journal entries to export")
+                viewModel.resetExportState()
+            }
+            is ExportUiState.Error -> {
+                snackbarHostState.showSnackbar("Export failed: ${state.message}")
+                viewModel.resetExportState()
+            }
+            else -> {}
+        }
+    }
+
     val reminderEnabled = remember { mutableStateOf(true) }
 
     val appThemeColor by viewModel.appThemeType.collectAsState()
@@ -90,6 +126,23 @@ fun SettingsScreen(
     val appLockEnabled by viewModel.appLockEnabled.collectAsState()
 
     var showColorPicker by remember { mutableStateOf(false) }
+
+    // Loading dialog for export
+    if (exportState is ExportUiState.Loading) {
+        Dialog(onDismissRequest = {}) {
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(
+                        MaterialTheme.colorScheme.surface,
+                        MaterialTheme.shapes.medium
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+    }
 
     if (showColorPicker) {
         AccentColorPickerDialog(
@@ -131,7 +184,9 @@ fun SettingsScreen(
             // Data & Backup
             item { SectionHeader("Data & Backup") }
             item {
-                SettingsOption("Export Journal") { onExportClick() }
+                SettingsOption("Export Journal", "Save as PDF to Downloads") {
+                    viewModel.exportJournal()
+                }
                 HorizontalDivider(dividerPadding, DividerDefaults.Thickness, DividerDefaults.color)
             }
             item {
