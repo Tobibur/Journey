@@ -45,6 +45,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.tobibur.journey.data.ExportType
+import com.tobibur.journey.presentation.components.ExportDialog
 import com.tobibur.journey.presentation.components.JourneyTopAppBar
 import com.tobibur.journey.ui.theme.AppThemeType
 import com.tobibur.journey.utils.BiometricAuthManager
@@ -70,6 +72,7 @@ fun SettingsScreen(
     // Export state
     val exportState by viewModel.exportState.collectAsState()
 
+
     LaunchedEffect(Unit) {
         setTopBar {
             JourneyTopAppBar(
@@ -94,29 +97,39 @@ fun SettingsScreen(
                 snackbarHostState.showSnackbar(
                     message = "Exported ${state.entryCount} entries to Downloads"
                 )
+
+                val type =
+                    if (state.type == ExportType.PDF) "application/pdf" else "application/json"
                 // Open PDF
                 try {
                     val intent = Intent(Intent.ACTION_VIEW).apply {
-                        setDataAndType(state.uri, "application/pdf")
+                        setDataAndType(state.uri, type)
                         flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
                     }
                     context.startActivity(intent)
                 } catch (e: ActivityNotFoundException) {
-                    snackbarHostState.showSnackbar("No PDF viewer app found")
+                    if(state.type == ExportType.PDF)
+                        snackbarHostState.showSnackbar("No PDF viewer app found")
+                    else
+                        snackbarHostState.showSnackbar("No JSON viewer app found")
                 }
                 viewModel.resetExportState()
             }
+
             is ExportUiState.NoEntries -> {
                 snackbarHostState.showSnackbar("No journal entries to export")
                 viewModel.resetExportState()
             }
+
             is ExportUiState.Error -> {
                 snackbarHostState.showSnackbar("Export failed: ${state.message}")
                 viewModel.resetExportState()
             }
+
             else -> {}
         }
     }
+
 
     val reminderEnabled = remember { mutableStateOf(true) }
 
@@ -126,6 +139,7 @@ fun SettingsScreen(
     val appLockEnabled by viewModel.appLockEnabled.collectAsState()
 
     var showColorPicker by remember { mutableStateOf(false) }
+    var showExportDialog by remember { mutableStateOf(false) }
 
     // Loading dialog for export
     if (exportState is ExportUiState.Loading) {
@@ -156,6 +170,7 @@ fun SettingsScreen(
         )
     }
 
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -185,7 +200,7 @@ fun SettingsScreen(
             item { SectionHeader("Data & Backup") }
             item {
                 SettingsOption("Export Journal", "Save as PDF to Downloads") {
-                    viewModel.exportJournal()
+                    showExportDialog = true
                 }
                 HorizontalDivider(dividerPadding, DividerDefaults.Thickness, DividerDefaults.color)
             }
@@ -253,6 +268,21 @@ fun SettingsScreen(
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier.align(Alignment.BottomCenter)
+        )
+    }
+
+    if (showExportDialog) {
+        ExportDialog(
+            onAccept = { type ->
+                if (type == "PDF")
+                    viewModel.exportPDFJournal()
+                else
+                    viewModel.exportJsonJournal()
+                showExportDialog = false
+            },
+            onDismiss = {
+                showExportDialog = false
+            }
         )
     }
 }

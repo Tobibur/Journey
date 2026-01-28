@@ -3,7 +3,10 @@ package com.tobibur.journey.presentation.screens.settings
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tobibur.journey.data.ExportState
+import com.tobibur.journey.data.ExportType
 import com.tobibur.journey.data.local.datastore.SettingsPreferences
+import com.tobibur.journey.domain.usecase.ExportJournalToJsonUseCase
 import com.tobibur.journey.domain.usecase.ExportJournalToPdfUseCase
 import com.tobibur.journey.ui.theme.AppThemeType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,7 +21,7 @@ import javax.inject.Inject
 sealed class ExportUiState {
     data object Idle : ExportUiState()
     data object Loading : ExportUiState()
-    data class Success(val uri: Uri, val entryCount: Int) : ExportUiState()
+    data class Success(val uri: Uri, val entryCount: Int, val type: ExportType) : ExportUiState()
     data object NoEntries : ExportUiState()
     data class Error(val message: String) : ExportUiState()
 }
@@ -26,7 +29,8 @@ sealed class ExportUiState {
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val prefs: SettingsPreferences,
-    private val exportJournalToPdfUseCase: ExportJournalToPdfUseCase
+    private val exportJournalToPdfUseCase: ExportJournalToPdfUseCase,
+    private val exportJournalToJsonUseCase: ExportJournalToJsonUseCase
 ) : ViewModel() {
 
     private val _exportState = MutableStateFlow<ExportUiState>(ExportUiState.Idle)
@@ -80,15 +84,15 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun exportJournal() {
+    fun exportPDFJournal() {
         viewModelScope.launch {
             _exportState.value = ExportUiState.Loading
             _exportState.value = when (val result = exportJournalToPdfUseCase()) {
-                is ExportJournalToPdfUseCase.Result.Success ->
-                    ExportUiState.Success(result.uri, result.entryCount)
-                is ExportJournalToPdfUseCase.Result.NoEntries ->
+                is ExportState.Success ->
+                    ExportUiState.Success(result.uri, result.entryCount, ExportType.PDF)
+                is ExportState.NoEntries ->
                     ExportUiState.NoEntries
-                is ExportJournalToPdfUseCase.Result.Error ->
+                is ExportState.Error ->
                     ExportUiState.Error(result.message)
             }
         }
@@ -96,5 +100,21 @@ class SettingsViewModel @Inject constructor(
 
     fun resetExportState() {
         _exportState.value = ExportUiState.Idle
+    }
+
+    fun exportJsonJournal() {
+        viewModelScope.launch {
+            _exportState.value = ExportUiState.Loading
+            _exportState.value = when (val result = exportJournalToJsonUseCase()) {
+                is ExportState.Success ->
+                    ExportUiState.Success(result.uri, result.entryCount, ExportType.JSON)
+
+                is ExportState.NoEntries ->
+                    ExportUiState.NoEntries
+
+                is ExportState.Error ->
+                    ExportUiState.Error(result.message)
+            }
+        }
     }
 }

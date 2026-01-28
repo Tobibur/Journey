@@ -3,20 +3,16 @@ package com.tobibur.journey.domain.usecase
 import com.tobibur.journey.data.ExportState
 import com.tobibur.journey.data.ExportType
 import com.tobibur.journey.domain.repository.JournalRepository
-import com.tobibur.journey.utils.JournalPdfGenerator
-import com.tobibur.journey.utils.PdfFileManager
+import com.tobibur.journey.utils.JsonFileManager
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
-class ExportJournalToPdfUseCase @Inject constructor(
+class ExportJournalToJsonUseCase @Inject constructor(
     private val repository: JournalRepository,
-    private val pdfGenerator: JournalPdfGenerator,
-    private val pdfFileManager: PdfFileManager
+    private val jsonFileManager: JsonFileManager
 ) {
-
-
     suspend operator fun invoke(): ExportState = withContext(Dispatchers.IO) {
         try {
             val entries = repository.getJournalEntries().first()
@@ -25,14 +21,15 @@ class ExportJournalToPdfUseCase @Inject constructor(
                 return@withContext ExportState.NoEntries
             }
 
-            val pdfBytes = pdfGenerator.generate(entries)
+            val jsonBytes = jsonFileManager.generate(entries)
 
-            val uri = pdfFileManager.savePdfToDownloads(pdfBytes)
-                ?: return@withContext ExportState.Error("Failed to save PDF file")
+            val uri = jsonFileManager.saveJsonToDownloads(jsonBytes)
+                ?: return@withContext ExportState.Error("Failed to save JSON file")
 
-            ExportState.Success(uri, entries.size, ExportType.PDF)
+            ExportState.Success(uri, entries.size, ExportType.JSON)
         } catch (e: Exception) {
             ExportState.Error(e.message ?: "Unknown error occurred")
         }
     }
+
 }

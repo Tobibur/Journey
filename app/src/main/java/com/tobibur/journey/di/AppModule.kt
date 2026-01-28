@@ -15,7 +15,9 @@ import com.tobibur.journey.domain.usecase.DeleteEntryUseCase
 import com.tobibur.journey.domain.usecase.GetEntryByIdUseCase
 import com.tobibur.journey.domain.usecase.GetJournalEntriesUseCase
 import com.tobibur.journey.domain.usecase.GetJournalStreakUseCase
+import com.tobibur.journey.domain.usecase.ExportJournalToJsonUseCase
 import com.tobibur.journey.domain.usecase.ExportJournalToPdfUseCase
+import com.tobibur.journey.utils.JsonFileManager
 import com.tobibur.journey.utils.JournalPdfGenerator
 import com.tobibur.journey.utils.PdfFileManager
 import dagger.Module
@@ -99,5 +101,20 @@ object AppModule {
         pdfFileManager: PdfFileManager
     ): ExportJournalToPdfUseCase {
         return ExportJournalToPdfUseCase(repository, pdfGenerator, pdfFileManager)
+    }
+
+    @Provides
+    @Singleton
+    fun provideJsonFileManager(@ApplicationContext context: Context): JsonFileManager {
+        return JsonFileManager(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideExportJournalToJsonUseCase(
+        repository: JournalRepository,
+        jsonFileManager: JsonFileManager
+    ): ExportJournalToJsonUseCase {
+        return ExportJournalToJsonUseCase(repository, jsonFileManager)
     }
 }
