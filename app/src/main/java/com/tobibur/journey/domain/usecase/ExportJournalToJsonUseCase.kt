@@ -4,10 +4,10 @@ import com.tobibur.journey.data.ExportState
 import com.tobibur.journey.data.ExportType
 import com.tobibur.journey.domain.repository.JournalRepository
 import com.tobibur.journey.utils.JsonFileManager
-import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 class ExportJournalToJsonUseCase @Inject constructor(
     private val repository: JournalRepository,

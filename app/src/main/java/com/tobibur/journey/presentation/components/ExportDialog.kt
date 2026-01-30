@@ -9,11 +9,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -30,7 +32,11 @@ import androidx.compose.ui.unit.dp
 import com.tobibur.journey.ui.theme.Typography
 
 @Composable
-fun ExportDialog(onAccept: (exportType: String) -> Unit, onDismiss: () -> Unit) {
+fun ExportDialog(
+    isLoading: Boolean = false,
+    onAccept: (exportType: String) -> Unit,
+    onDismiss: () -> Unit
+) {
     val exportTypes = listOf("PDF", "JSON (To import journals later)")
     val (selectedOption, onOptionSelected) = remember { mutableStateOf(exportTypes[0]) }
 
@@ -42,9 +48,11 @@ fun ExportDialog(onAccept: (exportType: String) -> Unit, onDismiss: () -> Unit) 
     ) {
         Card(modifier = Modifier.padding(8.dp), shape = RoundedCornerShape(8.dp)) {
             Spacer(Modifier.height(16.dp))
-            Column(modifier = Modifier
-                .selectableGroup()
-                .padding(16.dp)) {
+            Column(
+                modifier = Modifier
+                    .selectableGroup()
+                    .padding(16.dp)
+            ) {
                 Text("Choose export type:", style = Typography.titleLarge)
                 Spacer(Modifier.height(16.dp))
                 exportTypes.forEach { text ->
@@ -74,15 +82,16 @@ fun ExportDialog(onAccept: (exportType: String) -> Unit, onDismiss: () -> Unit) 
 
 
                 Spacer(Modifier.height(16.dp))
-                Button(
-                    onClick = { onAccept(selectedOption) }, modifier = Modifier
+                LoadingProgressButton(
+                    text = "Export & Download",
+                    isLoading = isLoading,
+                    onClick = { onAccept(selectedOption) },
+                    modifier = Modifier
                         .fillMaxWidth()
                         .padding(
                             horizontal = 16.dp
                         )
-                ) {
-                    Text("Export & Download")
-                }
+                )
                 TextButton(modifier = Modifier.fillMaxWidth(), onClick = onDismiss) {
                     Text("Dismiss", color = MaterialTheme.colorScheme.onSurface)
                 }
@@ -93,8 +102,32 @@ fun ExportDialog(onAccept: (exportType: String) -> Unit, onDismiss: () -> Unit) 
     }
 }
 
+@Composable
+fun LoadingProgressButton(
+    text: String,
+    isLoading: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier,
+        enabled = !isLoading // Disable button while loading
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(24.dp), // Adjust size as needed
+                color = MaterialTheme.colorScheme.onPrimary,
+                strokeWidth = 2.dp
+            )
+        } else {
+            Text(text = text)
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun ExportDialogPreview() {
-    ExportDialog({}, {})
+    ExportDialog(false,{}, {})
 }

@@ -90,8 +90,10 @@ class SettingsViewModel @Inject constructor(
             _exportState.value = when (val result = exportJournalToPdfUseCase()) {
                 is ExportState.Success ->
                     ExportUiState.Success(result.uri, result.entryCount, ExportType.PDF)
+
                 is ExportState.NoEntries ->
                     ExportUiState.NoEntries
+
                 is ExportState.Error ->
                     ExportUiState.Error(result.message)
             }

@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -43,7 +42,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.tobibur.journey.data.ExportType
 import com.tobibur.journey.presentation.components.ExportDialog
@@ -93,6 +91,10 @@ fun SettingsScreen(
     // Handle export state changes
     LaunchedEffect(exportState) {
         when (val state = exportState) {
+            is ExportUiState.Loading -> {
+
+            }
+
             is ExportUiState.Success -> {
                 snackbarHostState.showSnackbar(
                     message = "Exported ${state.entryCount} entries to Downloads"
@@ -108,7 +110,7 @@ fun SettingsScreen(
                     }
                     context.startActivity(intent)
                 } catch (e: ActivityNotFoundException) {
-                    if(state.type == ExportType.PDF)
+                    if (state.type == ExportType.PDF)
                         snackbarHostState.showSnackbar("No PDF viewer app found")
                     else
                         snackbarHostState.showSnackbar("No JSON viewer app found")
@@ -141,22 +143,6 @@ fun SettingsScreen(
     var showColorPicker by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
 
-    // Loading dialog for export
-    if (exportState is ExportUiState.Loading) {
-        Dialog(onDismissRequest = {}) {
-            Box(
-                modifier = Modifier
-                    .size(100.dp)
-                    .background(
-                        MaterialTheme.colorScheme.surface,
-                        MaterialTheme.shapes.medium
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        }
-    }
 
     if (showColorPicker) {
         AccentColorPickerDialog(
@@ -273,17 +259,21 @@ fun SettingsScreen(
 
     if (showExportDialog) {
         ExportDialog(
+            isLoading = exportState is ExportUiState.Loading,
             onAccept = { type ->
                 if (type == "PDF")
                     viewModel.exportPDFJournal()
                 else
                     viewModel.exportJsonJournal()
-                showExportDialog = false
             },
             onDismiss = {
                 showExportDialog = false
             }
         )
+        if (exportState is ExportUiState.Success || exportState is ExportUiState.Error ||
+            exportState is ExportUiState.NoEntries) {
+            showExportDialog = false
+        }
     }
 }
 

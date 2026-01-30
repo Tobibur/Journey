@@ -1,5 +1,6 @@
 package com.tobibur.journey.utils
 
+import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
@@ -56,6 +57,7 @@ class JsonFileManager @Inject constructor(
         }
     }
 
+    @SuppressLint("NewApi")
     private fun saveJsonWithMediaStore(jsonBytes: ByteArray, filename: String): Uri? {
         val contentValues = ContentValues().apply {
             put(MediaStore.Downloads.DISPLAY_NAME, filename)
