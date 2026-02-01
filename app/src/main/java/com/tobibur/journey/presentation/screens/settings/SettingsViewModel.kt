@@ -5,9 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tobibur.journey.data.ExportState
 import com.tobibur.journey.data.ExportType
+import com.tobibur.journey.data.ImportState
 import com.tobibur.journey.data.local.datastore.SettingsPreferences
 import com.tobibur.journey.domain.usecase.ExportJournalToJsonUseCase
 import com.tobibur.journey.domain.usecase.ExportJournalToPdfUseCase
+import com.tobibur.journey.domain.usecase.ImportJournalFromJsonUseCase
 import com.tobibur.journey.ui.theme.AppThemeType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,11 +32,15 @@ sealed class ExportUiState {
 class SettingsViewModel @Inject constructor(
     private val prefs: SettingsPreferences,
     private val exportJournalToPdfUseCase: ExportJournalToPdfUseCase,
-    private val exportJournalToJsonUseCase: ExportJournalToJsonUseCase
+    private val exportJournalToJsonUseCase: ExportJournalToJsonUseCase,
+    private val importJournalFromJsonUseCase: ImportJournalFromJsonUseCase
 ) : ViewModel() {
 
     private val _exportState = MutableStateFlow<ExportUiState>(ExportUiState.Idle)
     val exportState: StateFlow<ExportUiState> = _exportState.asStateFlow()
+
+    private val _importState = MutableStateFlow<ImportState>(ImportState.Idle)
+    val importState: StateFlow<ImportState> = _importState
 
     val appThemeType = prefs.appThemeTypeFlow.stateIn(
         viewModelScope,
@@ -118,5 +124,22 @@ class SettingsViewModel @Inject constructor(
                     ExportUiState.Error(result.message)
             }
         }
+    }
+
+    fun importFromJson(bytes: ByteArray?) {
+        _importState.value = ImportState.Loading
+        viewModelScope.launch {
+            if (bytes != null) {
+                val result = importJournalFromJsonUseCase(bytes)
+                // Handle ImportState result
+                _importState.value = result
+            }else{
+                _importState.value = ImportState.Error("No file selected")
+            }
+        }
+    }
+
+    fun resetImportState() {
+        _importState.value = ImportState.Idle
     }
 }

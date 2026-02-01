@@ -17,6 +17,7 @@ import com.tobibur.journey.domain.usecase.GetJournalEntriesUseCase
 import com.tobibur.journey.domain.usecase.GetJournalStreakUseCase
 import com.tobibur.journey.domain.usecase.ExportJournalToJsonUseCase
 import com.tobibur.journey.domain.usecase.ExportJournalToPdfUseCase
+import com.tobibur.journey.domain.usecase.ImportJournalFromJsonUseCase
 import com.tobibur.journey.utils.JsonFileManager
 import com.tobibur.journey.utils.JournalPdfGenerator
 import com.tobibur.journey.utils.PdfFileManager
@@ -116,5 +117,14 @@ object AppModule {
         jsonFileManager: JsonFileManager
     ): ExportJournalToJsonUseCase {
         return ExportJournalToJsonUseCase(repository, jsonFileManager)
+    }
+
+    @Provides
+    @Singleton
+    fun provideImportJournalFromJsonUseCase(
+        repository: JournalRepository,
+        jsonFileManager: JsonFileManager
+    ): ImportJournalFromJsonUseCase {
+        return ImportJournalFromJsonUseCase(repository, jsonFileManager)
     }
 }

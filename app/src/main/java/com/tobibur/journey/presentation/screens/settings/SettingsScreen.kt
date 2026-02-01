@@ -3,6 +3,8 @@ package com.tobibur.journey.presentation.screens.settings
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +47,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.tobibur.journey.data.ExportType
+import com.tobibur.journey.data.ImportState
 import com.tobibur.journey.presentation.components.ExportDialog
 import com.tobibur.journey.presentation.components.JourneyTopAppBar
 import com.tobibur.journey.ui.theme.AppThemeType
@@ -69,6 +73,20 @@ fun SettingsScreen(
 
     // Export state
     val exportState by viewModel.exportState.collectAsState()
+
+    // Import state
+    val importState by viewModel.importState.collectAsState()
+
+    val reminderEnabled = remember { mutableStateOf(true) }
+
+    val appThemeColor by viewModel.appThemeType.collectAsState()
+    val useDynamicColor by viewModel.useDynamicColor.collectAsState()
+    val darkThemeEnabled by viewModel.darkThemeEnabled.collectAsState()
+    val appLockEnabled by viewModel.appLockEnabled.collectAsState()
+
+    var showColorPicker by remember { mutableStateOf(false) }
+    var showExportDialog by remember { mutableStateOf(false) }
+    var showImportLoader by remember { mutableStateOf(false) }
 
 
     LaunchedEffect(Unit) {
@@ -132,16 +150,38 @@ fun SettingsScreen(
         }
     }
 
+    // Handle import state changes
+    LaunchedEffect(importState) {
+        when (val state = importState) {
+            is ImportState.Loading -> {
+                showImportLoader = true
+            }
 
-    val reminderEnabled = remember { mutableStateOf(true) }
+            is ImportState.Success -> {
+                snackbarHostState.showSnackbar(
+                    message = "Imported ${state.count} entries successfully"
+                )
+                viewModel.resetImportState()
+            }
 
-    val appThemeColor by viewModel.appThemeType.collectAsState()
-    val useDynamicColor by viewModel.useDynamicColor.collectAsState()
-    val darkThemeEnabled by viewModel.darkThemeEnabled.collectAsState()
-    val appLockEnabled by viewModel.appLockEnabled.collectAsState()
+            is ImportState.NoEntries -> {
+                snackbarHostState.showSnackbar("No entries found in the file")
+                viewModel.resetImportState()
+            }
 
-    var showColorPicker by remember { mutableStateOf(false) }
-    var showExportDialog by remember { mutableStateOf(false) }
+            is ImportState.Error -> {
+                snackbarHostState.showSnackbar("Import failed: ${state.message}")
+                viewModel.resetImportState()
+            }
+
+            is ImportState.Idle -> {
+                showImportLoader = false
+            }
+
+        }
+    }
+
+
 
 
     if (showColorPicker) {
@@ -154,6 +194,23 @@ fun SettingsScreen(
             },
             onDismiss = { showColorPicker = false }
         )
+    }
+
+    if(showImportLoader){
+        Box(modifier = Modifier.fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.4f)),
+            contentAlignment = Alignment.Center){
+            CircularProgressIndicator()
+        }
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let {
+            val bytes = context.contentResolver.openInputStream(it)?.readBytes()
+            viewModel.importFromJson(bytes)
+        }
     }
 
 
@@ -191,7 +248,12 @@ fun SettingsScreen(
                 HorizontalDivider(dividerPadding, DividerDefaults.Thickness, DividerDefaults.color)
             }
             item {
-                SettingsOption("Import Journal") { onImportClick() }
+                SettingsOption("Import Journal", "Upload json file to add entries") {
+
+
+                    // Trigger with:
+                    launcher.launch(arrayOf("application/json"))
+                }
                 HorizontalDivider(dividerPadding, DividerDefaults.Thickness, DividerDefaults.color)
             }
             item {
@@ -271,7 +333,8 @@ fun SettingsScreen(
             }
         )
         if (exportState is ExportUiState.Success || exportState is ExportUiState.Error ||
-            exportState is ExportUiState.NoEntries) {
+            exportState is ExportUiState.NoEntries
+        ) {
             showExportDialog = false
         }
     }

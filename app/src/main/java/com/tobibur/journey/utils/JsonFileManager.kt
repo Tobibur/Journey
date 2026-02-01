@@ -13,6 +13,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
+import java.nio.charset.Charset
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -115,5 +116,21 @@ class JsonFileManager @Inject constructor(
             Instant.ofEpochMilli(timestamp),
             ZoneId.systemDefault()
         ).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+    }
+
+    fun parse(jsonBytes: ByteArray): List<JournalEntry> {
+        val jsonString = jsonBytes.toString(Charsets.UTF_8)
+        val jsonObject = JSONObject(jsonString)
+        val entriesArray = jsonObject.getJSONArray("entries")
+
+        return List(entriesArray.length()) { index ->
+            val entryObject = entriesArray.getJSONObject(index)
+            JournalEntry(
+                id = 0,
+                title = entryObject.getString("title"),
+                content = entryObject.getString("content"),
+                timestamp = entryObject.getLong("timestamp")
+            )
+        }
     }
 }
