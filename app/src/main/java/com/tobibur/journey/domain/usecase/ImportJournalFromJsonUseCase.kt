@@ -1,7 +1,5 @@
 package com.tobibur.journey.domain.usecase
 
-import android.net.Uri
-import android.util.Log.e
 import com.tobibur.journey.data.ImportState
 import com.tobibur.journey.domain.repository.JournalRepository
 import com.tobibur.journey.utils.JsonFileManager
@@ -17,13 +15,13 @@ class ImportJournalFromJsonUseCase @Inject constructor(
     suspend operator fun invoke(jsonBytes: ByteArray): ImportState = withContext(Dispatchers.IO) {
         try {
             val entries = jsonFileManager.parse(jsonBytes)
-            if(entries.isEmpty())
+            if (entries.isEmpty())
                 return@withContext ImportState.NoEntries
 
             entries.forEach { repository.addJournalEntry(it) }
 
             ImportState.Success(entries.size)
-        }catch (e: Exception){
+        } catch (e: Exception) {
             ImportState.Error(e.message ?: "Unknown error occurred")
         }
     }

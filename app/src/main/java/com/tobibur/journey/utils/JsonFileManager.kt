@@ -13,7 +13,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
-import java.nio.charset.Charset
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -88,7 +87,8 @@ class JsonFileManager @Inject constructor(
 
     @Suppress("DEPRECATION")
     private fun saveJsonLegacy(jsonBytes: ByteArray, filename: String): Uri? {
-        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val downloadsDir =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         if (!downloadsDir.exists()) {
             downloadsDir.mkdirs()
         }

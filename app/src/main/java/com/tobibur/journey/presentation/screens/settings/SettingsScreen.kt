@@ -196,10 +196,13 @@ fun SettingsScreen(
         )
     }
 
-    if(showImportLoader){
-        Box(modifier = Modifier.fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.4f)),
-            contentAlignment = Alignment.Center){
+    if (showImportLoader) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.4f)),
+            contentAlignment = Alignment.Center
+        ) {
             CircularProgressIndicator()
         }
     }
