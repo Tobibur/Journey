@@ -1,7 +1,6 @@
 package com.tobibur.journey.presentation.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -41,31 +40,35 @@ fun StreakPopup(streak: Int, onDismiss: () -> Unit) {
             LottieCompositionSpec.RawRes(R.raw.thumbsupbird)
         )
         Card(
-            modifier = Modifier
-                .padding(24.dp),
-            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.padding(32.dp),
+            shape = RoundedCornerShape(24.dp)
         ) {
             Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 LottieAnimation(
                     composition = composition,
                     iterations = LottieConstants.IterateForever,
-                    modifier = Modifier.size(200.dp)
+                    modifier = Modifier.size(180.dp)
                 )
+                Spacer(Modifier.height(24.dp))
                 Text(
                     text = "🔥 $streak Day Streak!",
-                    style = MaterialTheme.typography.headlineMedium,
+                    style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(Modifier.height(24.dp))
-                Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth().padding(
-                    horizontal = 16.dp
-                )) {
-                    Text("Awesome!")
+                Spacer(Modifier.height(32.dp))
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = "Awesome!",
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
                 }
             }
         }

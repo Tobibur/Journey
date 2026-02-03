@@ -104,7 +104,7 @@ fun ViewEntryScreen(
     if (showDialog) {
         JourneyDialog(
             modifier = Modifier,
-            lottieRes = R.raw.thumbsupbird,
+            lottieRes = R.raw.delete_anim,
             title = "Delete Entry?",
             description = "Are you sure you want to delete this journal entry? This action cannot be undone.",
             confirmButton = {

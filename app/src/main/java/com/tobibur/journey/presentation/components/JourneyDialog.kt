@@ -51,43 +51,54 @@ fun JourneyDialog(
         contentAlignment = Alignment.Center
     ) {
 
-        Card(modifier = Modifier.padding(24.dp), shape = RoundedCornerShape(8.dp)) {
+        Card(
+            modifier = Modifier.padding(32.dp),
+            shape = RoundedCornerShape(24.dp)
+        ) {
             Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 LottieAnimation(
                     composition = composition,
                     iterations = LottieConstants.IterateForever,
-                    modifier = Modifier.size(200.dp)
+                    modifier = Modifier.size(180.dp)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(24.dp))
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(32.dp))
                 Button(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     onClick = confirmButton,
+                    shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error,
                         contentColor = MaterialTheme.colorScheme.onError
                     )
                 ) {
-                    Text(confirmButtonText)
+                    Text(
+                        text = confirmButtonText,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
                 }
+                Spacer(modifier = Modifier.height(8.dp))
                 TextButton(onClick = dismissButton) {
-                    Text("Dismiss", color = MaterialTheme.colorScheme.onSurface)
+                    Text(
+                        text = "Dismiss",
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
         }

@@ -343,7 +343,7 @@ fun SettingsScreen(
     if(showClearDbDialog) {
         JourneyDialog(
             modifier = Modifier,
-            lottieRes = R.raw.thumbsupbird,
+            lottieRes = R.raw.delete_anim,
             title = "Are you sure?",
             description = "This action cannot be undone",
             confirmButton = {
