@@ -11,6 +11,7 @@ import com.tobibur.journey.data.local.datastore.dataStore
 import com.tobibur.journey.data.repository.JournalRepositoryImpl
 import com.tobibur.journey.domain.repository.JournalRepository
 import com.tobibur.journey.domain.usecase.AddEntryUseCase
+import com.tobibur.journey.domain.usecase.DeleteAllEntriesUseCase
 import com.tobibur.journey.domain.usecase.DeleteEntryUseCase
 import com.tobibur.journey.domain.usecase.GetEntryByIdUseCase
 import com.tobibur.journey.domain.usecase.GetJournalEntriesUseCase
@@ -126,5 +127,11 @@ object AppModule {
         jsonFileManager: JsonFileManager
     ): ImportJournalFromJsonUseCase {
         return ImportJournalFromJsonUseCase(repository, jsonFileManager)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeleteAllEntriesUseCase(repository: JournalRepository): DeleteAllEntriesUseCase {
+        return DeleteAllEntriesUseCase(repository)
     }
 }

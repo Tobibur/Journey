@@ -25,6 +25,10 @@ class JournalRepositoryImpl(
         dao.deleteEntry(entry.toEntity())
     }
 
+    override suspend fun deleteAllJournalEntries(): Int {
+        return dao.deleteAllEntries()
+    }
+
     override suspend fun getJournalEntryById(id: Int): JournalEntry? {
         return dao.getEntryById(id)?.toDomain()
     }

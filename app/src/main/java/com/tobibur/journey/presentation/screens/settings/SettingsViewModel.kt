@@ -7,11 +7,13 @@ import com.tobibur.journey.data.ExportState
 import com.tobibur.journey.data.ExportType
 import com.tobibur.journey.data.ImportState
 import com.tobibur.journey.data.local.datastore.SettingsPreferences
+import com.tobibur.journey.domain.usecase.DeleteAllEntriesUseCase
 import com.tobibur.journey.domain.usecase.ExportJournalToJsonUseCase
 import com.tobibur.journey.domain.usecase.ExportJournalToPdfUseCase
 import com.tobibur.journey.domain.usecase.ImportJournalFromJsonUseCase
 import com.tobibur.journey.ui.theme.AppThemeType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -33,7 +35,8 @@ class SettingsViewModel @Inject constructor(
     private val prefs: SettingsPreferences,
     private val exportJournalToPdfUseCase: ExportJournalToPdfUseCase,
     private val exportJournalToJsonUseCase: ExportJournalToJsonUseCase,
-    private val importJournalFromJsonUseCase: ImportJournalFromJsonUseCase
+    private val importJournalFromJsonUseCase: ImportJournalFromJsonUseCase,
+    private val deleteEntryUseCase: DeleteAllEntriesUseCase
 ) : ViewModel() {
 
     private val _exportState = MutableStateFlow<ExportUiState>(ExportUiState.Idle)
@@ -141,5 +144,14 @@ class SettingsViewModel @Inject constructor(
 
     fun resetImportState() {
         _importState.value = ImportState.Idle
+    }
+
+    suspend fun deleteAllEntries(): Int {
+        val deletedCount = viewModelScope.async {
+            // Delete all entries
+            deleteEntryUseCase()
+        }
+
+        return deletedCount.await()
     }
 }

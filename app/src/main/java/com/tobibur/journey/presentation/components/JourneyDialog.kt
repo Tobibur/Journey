@@ -32,10 +32,11 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 
 @Composable
 fun JourneyDialog(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     lottieRes: Int,
     title: String,
     description: String,
+    confirmButtonText: String = "Delete",
     confirmButton: () -> Unit,
     dismissButton: () -> Unit
 ) {
@@ -74,14 +75,16 @@ fun JourneyDialog(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
                     onClick = confirmButton,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error,
                         contentColor = MaterialTheme.colorScheme.onError
                     )
                 ) {
-                    Text("Delete")
+                    Text(confirmButtonText)
                 }
                 TextButton(onClick = dismissButton) {
                     Text("Dismiss", color = MaterialTheme.colorScheme.onSurface)

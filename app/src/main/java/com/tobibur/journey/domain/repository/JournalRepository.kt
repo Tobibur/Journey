@@ -8,6 +8,7 @@ interface JournalRepository {
     fun getJournalEntries(): Flow<List<JournalEntry>>
     suspend fun addJournalEntry(entry: JournalEntry)
     suspend fun deleteJournalEntry(entry: JournalEntry)
+    suspend fun deleteAllJournalEntries(): Int
     suspend fun getJournalEntryById(id: Int): JournalEntry?
     fun getAllEntryDatesFlow(): Flow<List<LocalDate>>
 }

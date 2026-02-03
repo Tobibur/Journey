@@ -20,6 +20,9 @@ interface JournalDao {
     @Delete
     suspend fun deleteEntry(entry: JournalEntity)
 
+    @Query("DELETE FROM journal_entries")
+    suspend fun deleteAllEntries(): Int
+
     @Query("SELECT * FROM journal_entries WHERE id = :id LIMIT 1")
     suspend fun getEntryById(id: Int): JournalEntity?
 

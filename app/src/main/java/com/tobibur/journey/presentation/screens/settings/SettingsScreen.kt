@@ -46,9 +46,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.tobibur.journey.R
 import com.tobibur.journey.data.ExportType
 import com.tobibur.journey.data.ImportState
 import com.tobibur.journey.presentation.components.ExportDialog
+import com.tobibur.journey.presentation.components.JourneyDialog
 import com.tobibur.journey.presentation.components.JourneyTopAppBar
 import com.tobibur.journey.ui.theme.AppThemeType
 import com.tobibur.journey.utils.BiometricAuthManager
@@ -56,8 +58,6 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsScreen(
-    onImportClick: () -> Unit = {},
-    onClearDataClick: () -> Unit = {},
     onReminderToggle: (Boolean) -> Unit = {},
     onReminderTimeClick: () -> Unit = {},
     onAppLockToggle: (Boolean) -> Unit = {},
@@ -87,6 +87,7 @@ fun SettingsScreen(
     var showColorPicker by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
     var showImportLoader by remember { mutableStateOf(false) }
+    var showClearDbDialog by remember { mutableStateOf(false) }
 
 
     LaunchedEffect(Unit) {
@@ -181,9 +182,6 @@ fun SettingsScreen(
         }
     }
 
-
-
-
     if (showColorPicker) {
         AccentColorPickerDialog(
             currentColor = appThemeColor.name,
@@ -252,15 +250,15 @@ fun SettingsScreen(
             }
             item {
                 SettingsOption("Import Journal", "Upload json file to add entries") {
-
-
-                    // Trigger with:
+                    // launch file picker
                     launcher.launch(arrayOf("application/json"))
                 }
                 HorizontalDivider(dividerPadding, DividerDefaults.Thickness, DividerDefaults.color)
             }
             item {
-                SettingsOption("Clear All Data") { onClearDataClick() }
+                SettingsOption("Clear All Data") {
+                   showClearDbDialog = true
+                }
             }
 
             // Privacy
@@ -340,6 +338,25 @@ fun SettingsScreen(
         ) {
             showExportDialog = false
         }
+    }
+
+    if(showClearDbDialog) {
+        JourneyDialog(
+            modifier = Modifier,
+            lottieRes = R.raw.thumbsupbird,
+            title = "Are you sure?",
+            description = "This action cannot be undone",
+            confirmButton = {
+                scope.launch {
+                    val deletedCount = viewModel.deleteAllEntries()
+                    snackbarHostState.showSnackbar("All $deletedCount entries deleted")
+                }
+                showClearDbDialog = false
+            },
+            dismissButton = {
+                showClearDbDialog = false
+            }
+        )
     }
 }
 
