@@ -23,7 +23,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -116,7 +115,7 @@ fun HomeScreen(
                                                 )
                                             )
                                         },
-                                        backgroundColor = MaterialTheme.colorScheme.tertiary,
+                                        backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
                                         icon = Icons.Default.Edit,
                                         modifier = Modifier.fillMaxHeight()
                                     )
@@ -124,7 +123,7 @@ fun HomeScreen(
                                         onClick = {
                                             viewModel.deleteEntry(entry)
                                         },
-                                        backgroundColor = Color(0xFFD11A2A),
+                                        backgroundColor = MaterialTheme.colorScheme.errorContainer,
                                         icon = Icons.Default.Delete,
                                         modifier = Modifier.fillMaxHeight()
                                     )
