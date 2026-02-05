@@ -5,6 +5,9 @@ on:
     branches:
       - master  # Runs whenever you push to main branch
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -40,6 +43,17 @@ jobs:
           name: app-debug.apk
           path: app/build/outputs/apk/debug/app-debug.apk
 
+      - name: Get last commit info
+        id: last_commit
+        run: |
+          echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          {
+            echo 'message<<EOF'
+            git log -1 --pretty=format:'%s'
+            echo
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
+
       - name: Delete existing latest tag
         run: git push origin :refs/tags/latest || true
 
@@ -48,8 +62,10 @@ jobs:
         with:
           tag: latest
           commit: ${{ github.sha }}
-          name: "Latest Build"
-          body: "Built from commit ${{ github.sha }}"
+          name: "Latest Build (${{ steps.last_commit.outputs.short_sha }})"
+          body: |
+            **Last commit:** ${{ steps.last_commit.outputs.message }}
+            **Commit:** ${{ github.sha }}
           artifacts: app/build/outputs/apk/debug/app-debug.apk
           token: ${{ secrets.GITHUB_TOKEN }}
           allowUpdates: true
