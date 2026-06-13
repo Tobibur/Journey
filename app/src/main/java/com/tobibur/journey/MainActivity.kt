@@ -20,13 +20,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.lifecycleScope
 import com.airbnb.lottie.LottieCompositionFactory
+import com.tobibur.journey.di.ThemeBootstrapEntryPoint
 import com.tobibur.journey.presentation.navigation.JournalNavHost
 import com.tobibur.journey.presentation.screens.settings.SettingsViewModel
 import com.tobibur.journey.ui.theme.JourneyTheme
 import com.tobibur.journey.utils.BiometricAuthManager
 import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @AndroidEntryPoint
 class MainActivity : FragmentActivity() {
@@ -34,6 +38,13 @@ class MainActivity : FragmentActivity() {
     private var appLockRequired = mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val prefs = EntryPointAccessors.fromApplication(
+            applicationContext,
+            ThemeBootstrapEntryPoint::class.java,
+        ).settingsPreferences()
+        val useDarkTheme = runBlocking { prefs.darkThemeFlow.first() }
+        setTheme(if (useDarkTheme) R.style.Theme_Journey_Dark else R.style.Theme_Journey_Light)
+
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
