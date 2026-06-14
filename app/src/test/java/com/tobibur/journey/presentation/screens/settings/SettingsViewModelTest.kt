@@ -2,8 +2,14 @@ package com.tobibur.journey.presentation.screens.settings
 
 import android.net.Uri
 import app.cash.turbine.test
+import com.tobibur.journey.data.ExportState
+import com.tobibur.journey.data.ExportType
+import com.tobibur.journey.data.ImportState
 import com.tobibur.journey.data.local.datastore.SettingsPreferences
+import com.tobibur.journey.domain.usecase.DeleteAllEntriesUseCase
+import com.tobibur.journey.domain.usecase.ExportJournalToJsonUseCase
 import com.tobibur.journey.domain.usecase.ExportJournalToPdfUseCase
+import com.tobibur.journey.domain.usecase.ImportJournalFromJsonUseCase
 import com.tobibur.journey.ui.theme.AppThemeType
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -13,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -26,7 +33,10 @@ import org.junit.Test
 class SettingsViewModelTest {
 
     private lateinit var prefs: SettingsPreferences
-    private lateinit var exportUseCase: ExportJournalToPdfUseCase
+    private lateinit var exportPdfUseCase: ExportJournalToPdfUseCase
+    private lateinit var exportJsonUseCase: ExportJournalToJsonUseCase
+    private lateinit var importJsonUseCase: ImportJournalFromJsonUseCase
+    private lateinit var deleteAllUseCase: DeleteAllEntriesUseCase
     private lateinit var viewModel: SettingsViewModel
     private val testDispatcher = StandardTestDispatcher()
 
@@ -34,14 +44,23 @@ class SettingsViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         prefs = mockk(relaxed = true)
-        exportUseCase = mockk()
+        exportPdfUseCase = mockk()
+        exportJsonUseCase = mockk()
+        importJsonUseCase = mockk()
+        deleteAllUseCase = mockk()
 
         every { prefs.appThemeTypeFlow } returns flowOf(AppThemeType.PINK)
         every { prefs.useDynamicColorFlow } returns flowOf(true)
         every { prefs.darkThemeFlow } returns flowOf(false)
         every { prefs.appLockEnabledFlow } returns flowOf(false)
 
-        viewModel = SettingsViewModel(prefs, exportUseCase)
+        viewModel = SettingsViewModel(
+            prefs,
+            exportPdfUseCase,
+            exportJsonUseCase,
+            importJsonUseCase,
+            deleteAllUseCase
+        )
     }
 
     @After
@@ -50,38 +69,47 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `exportState initial value is Idle`() = runTest {
+    fun `exportState initial value is Idle`() {
         assertEquals(ExportUiState.Idle, viewModel.exportState.value)
     }
 
     @Test
-    fun `exportJournal sets Loading state then Success on successful export`() = runTest {
+    fun `importState initial value is Idle`() {
+        assertEquals(ImportState.Idle, viewModel.importState.value)
+    }
+
+    // ---- PDF export ----
+
+    @Test
+    fun `exportPDFJournal sets Loading then Success`() = runTest {
         val mockUri = mockk<Uri>()
-        coEvery { exportUseCase() } returns ExportJournalToPdfUseCase.Result.Success(mockUri, 5)
+        coEvery { exportPdfUseCase() } returns ExportState.Success(mockUri, 5, ExportType.PDF)
 
         viewModel.exportState.test {
             assertEquals(ExportUiState.Idle, awaitItem())
 
-            viewModel.exportJournal()
-            testDispatcher.scheduler.advanceUntilIdle()
+            viewModel.exportPDFJournal()
+            advanceUntilIdle()
 
             assertEquals(ExportUiState.Loading, awaitItem())
-            val successState = awaitItem()
-            assertTrue(successState is ExportUiState.Success)
-            assertEquals(mockUri, (successState as ExportUiState.Success).uri)
-            assertEquals(5, successState.entryCount)
+            val success = awaitItem()
+            assertTrue(success is ExportUiState.Success)
+            success as ExportUiState.Success
+            assertEquals(mockUri, success.uri)
+            assertEquals(5, success.entryCount)
+            assertEquals(ExportType.PDF, success.type)
         }
     }
 
     @Test
-    fun `exportJournal sets NoEntries state when no entries exist`() = runTest {
-        coEvery { exportUseCase() } returns ExportJournalToPdfUseCase.Result.NoEntries
+    fun `exportPDFJournal sets NoEntries when there are none`() = runTest {
+        coEvery { exportPdfUseCase() } returns ExportState.NoEntries
 
         viewModel.exportState.test {
             assertEquals(ExportUiState.Idle, awaitItem())
 
-            viewModel.exportJournal()
-            testDispatcher.scheduler.advanceUntilIdle()
+            viewModel.exportPDFJournal()
+            advanceUntilIdle()
 
             assertEquals(ExportUiState.Loading, awaitItem())
             assertEquals(ExportUiState.NoEntries, awaitItem())
@@ -89,34 +117,50 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `exportJournal sets Error state on export failure`() = runTest {
-        val errorMessage = "Failed to create PDF"
-        coEvery { exportUseCase() } returns ExportJournalToPdfUseCase.Result.Error(errorMessage)
+    fun `exportPDFJournal sets Error on failure`() = runTest {
+        coEvery { exportPdfUseCase() } returns ExportState.Error("boom")
 
         viewModel.exportState.test {
             assertEquals(ExportUiState.Idle, awaitItem())
 
-            viewModel.exportJournal()
-            testDispatcher.scheduler.advanceUntilIdle()
+            viewModel.exportPDFJournal()
+            advanceUntilIdle()
 
             assertEquals(ExportUiState.Loading, awaitItem())
-            val errorState = awaitItem()
-            assertTrue(errorState is ExportUiState.Error)
-            assertEquals(errorMessage, (errorState as ExportUiState.Error).message)
+            assertEquals(ExportUiState.Error("boom"), awaitItem())
+        }
+    }
+
+    // ---- JSON export ----
+
+    @Test
+    fun `exportJsonJournal sets Success with JSON type`() = runTest {
+        val mockUri = mockk<Uri>()
+        coEvery { exportJsonUseCase() } returns ExportState.Success(mockUri, 3, ExportType.JSON)
+
+        viewModel.exportState.test {
+            assertEquals(ExportUiState.Idle, awaitItem())
+
+            viewModel.exportJsonJournal()
+            advanceUntilIdle()
+
+            assertEquals(ExportUiState.Loading, awaitItem())
+            val success = awaitItem() as ExportUiState.Success
+            assertEquals(ExportType.JSON, success.type)
+            assertEquals(3, success.entryCount)
         }
     }
 
     @Test
     fun `resetExportState sets state back to Idle`() = runTest {
         val mockUri = mockk<Uri>()
-        coEvery { exportUseCase() } returns ExportJournalToPdfUseCase.Result.Success(mockUri, 3)
+        coEvery { exportPdfUseCase() } returns ExportState.Success(mockUri, 3, ExportType.PDF)
 
         viewModel.exportState.test {
             assertEquals(ExportUiState.Idle, awaitItem())
 
-            viewModel.exportJournal()
-            testDispatcher.scheduler.advanceUntilIdle()
-
+            viewModel.exportPDFJournal()
+            advanceUntilIdle()
             skipItems(2)
 
             viewModel.resetExportState()
@@ -124,46 +168,65 @@ class SettingsViewModelTest {
         }
     }
 
-    @Test
-    fun `exportJournal calls exportUseCase`() = runTest {
-        val mockUri = mockk<Uri>()
-        coEvery { exportUseCase() } returns ExportJournalToPdfUseCase.Result.Success(mockUri, 1)
-
-        viewModel.exportJournal()
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        coVerify(exactly = 1) { exportUseCase() }
-    }
+    // ---- JSON import ----
 
     @Test
-    fun `multiple export calls work correctly`() = runTest {
-        val mockUri = mockk<Uri>()
-        coEvery { exportUseCase() } returns ExportJournalToPdfUseCase.Result.Success(mockUri, 2)
+    fun `importFromJson with null bytes sets Error`() = runTest {
+        viewModel.importState.test {
+            assertEquals(ImportState.Idle, awaitItem())
 
-        viewModel.exportState.test {
-            assertEquals(ExportUiState.Idle, awaitItem())
+            viewModel.importFromJson(null)
+            advanceUntilIdle()
 
-            viewModel.exportJournal()
-            testDispatcher.scheduler.advanceUntilIdle()
-
-            assertEquals(ExportUiState.Loading, awaitItem())
-            assertTrue(awaitItem() is ExportUiState.Success)
-
-            viewModel.resetExportState()
-            assertEquals(ExportUiState.Idle, awaitItem())
-
-            viewModel.exportJournal()
-            testDispatcher.scheduler.advanceUntilIdle()
-
-            assertEquals(ExportUiState.Loading, awaitItem())
-            assertTrue(awaitItem() is ExportUiState.Success)
+            assertEquals(ImportState.Loading, awaitItem())
+            assertEquals(ImportState.Error("No file selected"), awaitItem())
         }
     }
 
     @Test
+    fun `importFromJson forwards use case result`() = runTest {
+        val bytes = byteArrayOf(1, 2, 3)
+        coEvery { importJsonUseCase(bytes) } returns ImportState.Success(4)
+
+        viewModel.importState.test {
+            assertEquals(ImportState.Idle, awaitItem())
+
+            viewModel.importFromJson(bytes)
+            advanceUntilIdle()
+
+            assertEquals(ImportState.Loading, awaitItem())
+            assertEquals(ImportState.Success(4), awaitItem())
+        }
+    }
+
+    @Test
+    fun `resetImportState sets state back to Idle`() = runTest {
+        viewModel.importFromJson(null)
+        advanceUntilIdle()
+
+        viewModel.resetImportState()
+
+        assertEquals(ImportState.Idle, viewModel.importState.value)
+    }
+
+    // ---- delete all ----
+
+    @Test
+    fun `deleteAllEntries returns deleted count from use case`() = runTest {
+        coEvery { deleteAllUseCase() } returns 12
+
+        val deleted = viewModel.deleteAllEntries()
+
+        assertEquals(12, deleted)
+        coVerify(exactly = 1) { deleteAllUseCase() }
+    }
+
+    // ---- preferences ----
+
+    @Test
     fun `setAccentColor calls prefs setAppThemeType`() = runTest {
         viewModel.setAccentColor("PURPLE")
-        testDispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         coVerify { prefs.setAppThemeType(AppThemeType.PURPLE) }
     }
@@ -171,7 +234,7 @@ class SettingsViewModelTest {
     @Test
     fun `setDynamicColor calls prefs setUseDynamicColor`() = runTest {
         viewModel.setDynamicColor(false)
-        testDispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         coVerify { prefs.setUseDynamicColor(false) }
     }
@@ -179,7 +242,7 @@ class SettingsViewModelTest {
     @Test
     fun `setDarkTheme calls prefs setDarkTheme`() = runTest {
         viewModel.setDarkTheme(true)
-        testDispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         coVerify { prefs.setDarkTheme(true) }
     }
@@ -187,7 +250,7 @@ class SettingsViewModelTest {
     @Test
     fun `setAppLockEnabled calls prefs setAppLockEnabled`() = runTest {
         viewModel.setAppLockEnabled(true)
-        testDispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         coVerify { prefs.setAppLockEnabled(true) }
     }

@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.hilt.android)
+    jacoco
 }
 
 android {
@@ -46,6 +47,52 @@ android {
         compose = true
     }
 
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
+
+}
+
+// JaCoCo code-coverage report for unit tests.
+// Run with: ./gradlew jacocoTestReport
+// HTML report: app/build/reports/jacoco/jacocoTestReport/html/index.html
+jacoco {
+    toolVersion = "0.8.12"
+}
+
+tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("testDebugUnitTest")
+    group = "verification"
+    description = "Generates JaCoCo coverage report for the debug unit tests."
+
+    reports {
+        html.required.set(true)
+        xml.required.set(true)
+        csv.required.set(false)
+    }
+
+    // Exclude generated code and UI/framework classes that aren't unit-testable.
+    val excludes = listOf(
+        "**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*",
+        "**/*Test*.*", "android/**/*.*",
+        // Hilt / generated
+        "**/*_Factory*.*", "**/*_HiltModules*.*", "**/*_Impl*.*",
+        "**/Hilt_*.*", "**/*_GeneratedInjector*.*", "**/*_MembersInjector*.*",
+        "**/di/**", "dagger/**", "hilt_aggregated_deps/**",
+        // Pure-UI Compose code (not unit tested)
+        "**/ui/theme/**", "**/presentation/components/**",
+        "**/presentation/navigation/**", "**/*Screen*.*",
+        "**/ComposableSingletons*.*"
+    )
+
+    val kotlinClasses = fileTree("${layout.buildDirectory.get()}/tmp/kotlin-classes/debug") {
+        setExcludes(excludes)
+    }
+    classDirectories.setFrom(kotlinClasses)
+    sourceDirectories.setFrom(files("src/main/java"))
+    executionData.setFrom(
+        fileTree(layout.buildDirectory.get()) { setIncludes(listOf("**/testDebugUnitTest.exec")) }
+    )
 }
 
 dependencies {

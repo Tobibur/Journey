@@ -1,11 +1,12 @@
 package com.tobibur.journey.domain.usecase
 
 import android.net.Uri
+import com.tobibur.journey.data.ExportState
+import com.tobibur.journey.data.ExportType
 import com.tobibur.journey.domain.model.JournalEntry
 import com.tobibur.journey.domain.repository.JournalRepository
 import com.tobibur.journey.utils.JournalPdfGenerator
 import com.tobibur.journey.utils.PdfFileManager
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -37,7 +38,7 @@ class ExportJournalToPdfUseCaseTest {
 
         val result = useCase()
 
-        assertTrue(result is ExportJournalToPdfUseCase.Result.NoEntries)
+        assertTrue(result is ExportState.NoEntries)
     }
 
     @Test
@@ -55,10 +56,11 @@ class ExportJournalToPdfUseCaseTest {
 
         val result = useCase()
 
-        assertTrue(result is ExportJournalToPdfUseCase.Result.Success)
-        val success = result as ExportJournalToPdfUseCase.Result.Success
+        assertTrue(result is ExportState.Success)
+        val success = result as ExportState.Success
         assertEquals(mockUri, success.uri)
         assertEquals(2, success.entryCount)
+        assertEquals(ExportType.PDF, success.exportType)
     }
 
     @Test
@@ -74,8 +76,8 @@ class ExportJournalToPdfUseCaseTest {
 
         val result = useCase()
 
-        assertTrue(result is ExportJournalToPdfUseCase.Result.Error)
-        assertEquals("Failed to save PDF file", (result as ExportJournalToPdfUseCase.Result.Error).message)
+        assertTrue(result is ExportState.Error)
+        assertEquals("Failed to save PDF file", (result as ExportState.Error).message)
     }
 
     @Test
@@ -85,8 +87,8 @@ class ExportJournalToPdfUseCaseTest {
 
         val result = useCase()
 
-        assertTrue(result is ExportJournalToPdfUseCase.Result.Error)
-        assertEquals(errorMessage, (result as ExportJournalToPdfUseCase.Result.Error).message)
+        assertTrue(result is ExportState.Error)
+        assertEquals(errorMessage, (result as ExportState.Error).message)
     }
 
     @Test
@@ -95,8 +97,8 @@ class ExportJournalToPdfUseCaseTest {
 
         val result = useCase()
 
-        assertTrue(result is ExportJournalToPdfUseCase.Result.Error)
-        assertEquals("Unknown error occurred", (result as ExportJournalToPdfUseCase.Result.Error).message)
+        assertTrue(result is ExportState.Error)
+        assertEquals("Unknown error occurred", (result as ExportState.Error).message)
     }
 
     @Test
