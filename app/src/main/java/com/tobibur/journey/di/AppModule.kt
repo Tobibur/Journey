@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
+import androidx.work.WorkManager
 import com.tobibur.journey.data.local.dao.JournalDao
 import com.tobibur.journey.data.local.database.JournalDatabase
 import com.tobibur.journey.data.local.datastore.dataStore
@@ -133,5 +134,11 @@ object AppModule {
     @Singleton
     fun provideDeleteAllEntriesUseCase(repository: JournalRepository): DeleteAllEntriesUseCase {
         return DeleteAllEntriesUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideWorkManager(@ApplicationContext context: Context): androidx.work.WorkManager {
+        return WorkManager.getInstance(context)
     }
 }

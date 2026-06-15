@@ -1,7 +1,10 @@
 package com.tobibur.journey.presentation.screens.settings
 
+import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,6 +25,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
@@ -29,6 +33,9 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -45,6 +52,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.tobibur.journey.R
 import com.tobibur.journey.data.ExportType
@@ -55,11 +63,11 @@ import com.tobibur.journey.presentation.components.JourneyTopAppBar
 import com.tobibur.journey.ui.theme.AppThemeType
 import com.tobibur.journey.utils.BiometricAuthManager
 import kotlinx.coroutines.launch
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun SettingsScreen(
-    onReminderToggle: (Boolean) -> Unit = {},
-    onReminderTimeClick: () -> Unit = {},
     onAppLockToggle: (Boolean) -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
     setTopBar: (@Composable (() -> Unit)) -> Unit = {}
@@ -77,17 +85,50 @@ fun SettingsScreen(
     // Import state
     val importState by viewModel.importState.collectAsState()
 
-    val reminderEnabled = remember { mutableStateOf(true) }
-
     val appThemeColor by viewModel.appThemeType.collectAsState()
     val useDynamicColor by viewModel.useDynamicColor.collectAsState()
     val darkThemeEnabled by viewModel.darkThemeEnabled.collectAsState()
     val appLockEnabled by viewModel.appLockEnabled.collectAsState()
+    val reminderEnabled by viewModel.reminderEnabled.collectAsState()
+    val reminderTime by viewModel.reminderTime.collectAsState() // minutes since midnight
+
+    val reminderTimeLabel = remember(reminderTime) {
+        LocalTime.of(reminderTime / 60, reminderTime % 60)
+            .format(DateTimeFormatter.ofPattern("h:mm a"))
+    }
 
     var showColorPicker by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
     var showImportLoader by remember { mutableStateOf(false) }
     var showClearDbDialog by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
+
+    // POST_NOTIFICATIONS is required on Android 13+ before reminders can show.
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            viewModel.setReminderEnabled(true)
+        } else {
+            scope.launch {
+                snackbarHostState.showSnackbar("Notification permission denied")
+            }
+        }
+    }
+
+    val onReminderToggle: (Boolean) -> Unit = { enabled ->
+        if (!enabled) {
+            viewModel.setReminderEnabled(false)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(
+                context, Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            viewModel.setReminderEnabled(true)
+        }
+    }
 
 
     LaunchedEffect(Unit) {
@@ -296,14 +337,11 @@ fun SettingsScreen(
             // Notifications
             item { SectionHeader("Notifications") }
             item {
-                SwitchSetting("Daily Reminder", reminderEnabled.value) {
-                    reminderEnabled.value = it
-                    onReminderToggle(it)
-                }
+                SwitchSetting("Daily Reminder", reminderEnabled) { onReminderToggle(it) }
                 HorizontalDivider(dividerPadding, DividerDefaults.Thickness, DividerDefaults.color)
             }
             item {
-                SettingsOption("Reminder Time", "Set time") { onReminderTimeClick() }
+                SettingsOption("Reminder Time", reminderTimeLabel) { showTimePicker = true }
             }
 
             // About
@@ -358,6 +396,55 @@ fun SettingsScreen(
             }
         )
     }
+
+    if (showTimePicker) {
+        ReminderTimePickerDialog(
+            initialHour = reminderTime / 60,
+            initialMinute = reminderTime % 60,
+            onConfirm = { hour, minute ->
+                viewModel.setReminderTime(hour, minute)
+                showTimePicker = false
+            },
+            onDismiss = { showTimePicker = false }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ReminderTimePickerDialog(
+    initialHour: Int,
+    initialMinute: Int,
+    onConfirm: (Int, Int) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val state = rememberTimePickerState(
+        initialHour = initialHour,
+        initialMinute = initialMinute,
+        is24Hour = false
+    )
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Reminder Time") },
+        text = {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                TimePicker(state = state)
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(state.hour, state.minute) }) {
+                Text("Set")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 @Composable

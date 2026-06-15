@@ -11,6 +11,7 @@ import com.tobibur.journey.domain.usecase.DeleteAllEntriesUseCase
 import com.tobibur.journey.domain.usecase.ExportJournalToJsonUseCase
 import com.tobibur.journey.domain.usecase.ExportJournalToPdfUseCase
 import com.tobibur.journey.domain.usecase.ImportJournalFromJsonUseCase
+import com.tobibur.journey.notifications.ReminderScheduler
 import com.tobibur.journey.ui.theme.AppThemeType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -36,7 +37,8 @@ class SettingsViewModel @Inject constructor(
     private val exportJournalToPdfUseCase: ExportJournalToPdfUseCase,
     private val exportJournalToJsonUseCase: ExportJournalToJsonUseCase,
     private val importJournalFromJsonUseCase: ImportJournalFromJsonUseCase,
-    private val deleteEntryUseCase: DeleteAllEntriesUseCase
+    private val deleteEntryUseCase: DeleteAllEntriesUseCase,
+    private val reminderScheduler: ReminderScheduler
 ) : ViewModel() {
 
     private val _exportState = MutableStateFlow<ExportUiState>(ExportUiState.Idle)
@@ -69,6 +71,18 @@ class SettingsViewModel @Inject constructor(
         false
     )
 
+    val reminderEnabled = prefs.reminderEnabledFlow.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        false
+    )
+
+    val reminderTime = prefs.reminderTimeFlow.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        20 * 60
+    )
+
     fun setAccentColor(appThemeType: String) {
         viewModelScope.launch {
             prefs.setAppThemeType(AppThemeType.valueOf(appThemeType))
@@ -90,6 +104,30 @@ class SettingsViewModel @Inject constructor(
     fun setAppLockEnabled(enabled: Boolean) {
         viewModelScope.launch {
             prefs.setAppLockEnabled(enabled)
+        }
+    }
+
+    fun setReminderEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            prefs.setReminderEnabled(enabled)
+            if (enabled) {
+                val time = reminderTime.value
+                val hour = time / 60
+                val minute = time % 60
+                reminderScheduler.schedule(hour, minute)
+            } else {
+                reminderScheduler.cancel()
+            }
+        }
+    }
+
+    fun setReminderTime(hour: Int, minute: Int) {
+        viewModelScope.launch {
+            prefs.setReminderTime(hour, minute)
+            // Reschedule with the new time only if reminders are currently on.
+            if (reminderEnabled.value) {
+                reminderScheduler.schedule(hour, minute)
+            }
         }
     }
 

@@ -10,11 +10,13 @@ import com.tobibur.journey.domain.usecase.DeleteAllEntriesUseCase
 import com.tobibur.journey.domain.usecase.ExportJournalToJsonUseCase
 import com.tobibur.journey.domain.usecase.ExportJournalToPdfUseCase
 import com.tobibur.journey.domain.usecase.ImportJournalFromJsonUseCase
+import com.tobibur.journey.notifications.ReminderScheduler
 import com.tobibur.journey.ui.theme.AppThemeType
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -37,6 +39,7 @@ class SettingsViewModelTest {
     private lateinit var exportJsonUseCase: ExportJournalToJsonUseCase
     private lateinit var importJsonUseCase: ImportJournalFromJsonUseCase
     private lateinit var deleteAllUseCase: DeleteAllEntriesUseCase
+    private lateinit var reminderScheduler: ReminderScheduler
     private lateinit var viewModel: SettingsViewModel
     private val testDispatcher = StandardTestDispatcher()
 
@@ -48,18 +51,22 @@ class SettingsViewModelTest {
         exportJsonUseCase = mockk()
         importJsonUseCase = mockk()
         deleteAllUseCase = mockk()
+        reminderScheduler = mockk(relaxed = true)
 
         every { prefs.appThemeTypeFlow } returns flowOf(AppThemeType.PINK)
         every { prefs.useDynamicColorFlow } returns flowOf(true)
         every { prefs.darkThemeFlow } returns flowOf(false)
         every { prefs.appLockEnabledFlow } returns flowOf(false)
+        every { prefs.reminderEnabledFlow } returns flowOf(false)
+        every { prefs.reminderTimeFlow } returns flowOf(20 * 60)
 
         viewModel = SettingsViewModel(
             prefs,
             exportPdfUseCase,
             exportJsonUseCase,
             importJsonUseCase,
-            deleteAllUseCase
+            deleteAllUseCase,
+            reminderScheduler
         )
     }
 
@@ -253,5 +260,42 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         coVerify { prefs.setAppLockEnabled(true) }
+    }
+
+    // ---- reminders ----
+
+    @Test
+    fun `setReminderEnabled true persists and schedules at current time`() = runTest {
+        viewModel.setReminderEnabled(true)
+        advanceUntilIdle()
+
+        coVerify { prefs.setReminderEnabled(true) }
+        // Default reminderTime is 20 * 60 = 8:00 PM.
+        verify { reminderScheduler.schedule(20, 0) }
+    }
+
+    @Test
+    fun `setReminderEnabled false persists and cancels schedule`() = runTest {
+        viewModel.setReminderEnabled(false)
+        advanceUntilIdle()
+
+        coVerify { prefs.setReminderEnabled(false) }
+        verify { reminderScheduler.cancel() }
+    }
+
+    @Test
+    fun `setReminderTime persists the time`() = runTest {
+        viewModel.setReminderTime(7, 30)
+        advanceUntilIdle()
+
+        coVerify { prefs.setReminderTime(7, 30) }
+    }
+
+    @Test
+    fun `setReminderTime does not reschedule when reminder disabled`() = runTest {
+        viewModel.setReminderTime(7, 30)
+        advanceUntilIdle()
+
+        verify(exactly = 0) { reminderScheduler.schedule(any(), any()) }
     }
 }

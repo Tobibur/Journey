@@ -3,9 +3,11 @@ package com.tobibur.journey.data.local.datastore
 import android.content.Context
 import android.content.res.Configuration
 import androidx.datastore.core.DataStore
+import androidx.datastore.dataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.tobibur.journey.ui.theme.AppThemeType
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -24,6 +26,11 @@ class SettingsPreferences @Inject constructor(
         private val DARK_THEME = booleanPreferencesKey("dark_theme")
         private val APP_LOCK_ENABLED = booleanPreferencesKey("app_lock_enabled")
         private val APP_THEME_TYPE = stringPreferencesKey("app_theme_type")
+        private val REMINDER_ENABLED = booleanPreferencesKey("reminder_enabled")
+
+        // Reminder time stored as minutes since midnight (e.g. 20 * 60 = 8:00 PM).
+        private val REMINDER_TIME = intPreferencesKey("reminder_time")
+        private const val DEFAULT_REMINDER_TIME = 20 * 60
     }
 
     val useDynamicColorFlow: Flow<Boolean> = dataStore.data
@@ -45,6 +52,12 @@ class SettingsPreferences @Inject constructor(
             }
         }
 
+    val reminderEnabledFlow: Flow<Boolean> = dataStore.data
+        .map { prefs -> prefs[REMINDER_ENABLED] ?: false  }
+
+    val reminderTimeFlow: Flow<Int> = dataStore.data
+        .map { prefs -> prefs[REMINDER_TIME] ?: DEFAULT_REMINDER_TIME }
+
     suspend fun setUseDynamicColor(enabled: Boolean) {
         dataStore.edit { prefs -> prefs[USE_DYNAMIC_COLOR] = enabled }
     }
@@ -64,5 +77,14 @@ class SettingsPreferences @Inject constructor(
     private fun isSystemInDarkThemeDefault(): Boolean {
         val uiMode = context.resources.configuration.uiMode
         return (uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+    }
+
+    suspend fun setReminderEnabled(enabled: Boolean) {
+        dataStore.edit { prefs -> prefs[REMINDER_ENABLED] = enabled }
+    }
+
+    /** [hour] in 0..23, [minute] in 0..59. Stored as minutes since midnight. */
+    suspend fun setReminderTime(hour: Int, minute: Int) {
+        dataStore.edit { prefs -> prefs[REMINDER_TIME] = hour * 60 + minute }
     }
 }
