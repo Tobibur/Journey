@@ -4,7 +4,9 @@
     <!-- Launcher / default; overridden in MainActivity once prefs are read -->
     <style name="Theme.Journey" parent="Theme.Journey.Light" />
 
-    <style name="Theme.Journey.Light" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.Journey.Light" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/splash_background</item>
+    </style>
 
     <style name="Theme.Journey.Dark" parent="android:Theme.Material.NoActionBar" />
 </resources>
