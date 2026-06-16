@@ -8,6 +8,7 @@ import androidx.room.Room
 import androidx.work.WorkManager
 import com.tobibur.journey.data.local.dao.JournalDao
 import com.tobibur.journey.data.local.database.JournalDatabase
+import com.tobibur.journey.data.local.database.JournalMigrations
 import com.tobibur.journey.data.local.datastore.dataStore
 import com.tobibur.journey.data.repository.JournalRepositoryImpl
 import com.tobibur.journey.domain.repository.JournalRepository
@@ -38,6 +39,9 @@ object AppModule {
     @Singleton
     fun provideDatabase(app: Application): JournalDatabase =
         Room.databaseBuilder(app, JournalDatabase::class.java, "journal_db")
+            // Apply real migrations; never silently wipe user entries on a
+            // missing/failed migration (it throws loudly instead).
+            .addMigrations(*JournalMigrations.ALL)
             .fallbackToDestructiveMigration(false)
             .build()
 

@@ -23,6 +23,12 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // Export Room schema JSON (app/schemas/<version>.json) so future migrations
+    // can be written and tested against a known baseline. Commit this folder.
+    sourceSets {
+        getByName("androidTest").assets.srcDir("$projectDir/schemas")
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -51,6 +57,11 @@ android {
         unitTests.isReturnDefaultValues = true
     }
 
+}
+
+// Tell Room (via KSP) where to write exported schema JSON files.
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 // JaCoCo code-coverage report for unit tests.
@@ -110,6 +121,7 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
     androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.room.testing)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)

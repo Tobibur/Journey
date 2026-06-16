@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import com.tobibur.journey.data.local.dao.JournalDao
 import com.tobibur.journey.data.local.entity.JournalEntity
 
-@Database(entities = [JournalEntity::class], version = 1, exportSchema = false)
+@Database(entities = [JournalEntity::class], version = 1, exportSchema = true)
 abstract class JournalDatabase : RoomDatabase() {
     abstract fun journalDao(): JournalDao
 }
