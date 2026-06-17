@@ -1,5 +1,6 @@
 package com.tobibur.journey.ui.theme
 
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -11,6 +12,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.tobibur.journey.presentation.screens.settings.SettingsViewModel
 
+// The dynamicLight/DarkColorScheme calls below are correctly guarded by a runtime
+// SDK_INT >= S check, but lint's NewApi flow analysis (AGP 8.13.2) fails to honor
+// the guard here in any form (compound, sole-condition, or @RequiresApi). Suppress
+// the false positive; the calls are unreachable below API 31.
+@SuppressLint("NewApi")
 @Composable
 fun JourneyTheme(
     viewModel: SettingsViewModel = hiltViewModel(),
