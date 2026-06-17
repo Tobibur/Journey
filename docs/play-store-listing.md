@@ -107,7 +107,7 @@ Start your Journey today and turn reflection into a daily habit.
 | Email address | tobiburrahman786@gmail.com |
 | Website | *(optional — add if available)* |
 | Phone | *(optional)* |
-| Privacy Policy URL | **Required** — see Section 6 |
+| Privacy Policy URL | https://tobibur.github.io/Journey/privacy-policy.html |
 
 ---
 
@@ -147,7 +147,11 @@ Journey is privacy-friendly. Expected declarations:
 | `WRITE_EXTERNAL_STORAGE` (maxSdk 28) | Saving PDF/JSON exports on older devices |
 
 ### Privacy Policy (REQUIRED)
-Google requires a publicly hosted privacy policy URL. A minimal policy is sufficient given no data is collected. Suggested text is provided in `docs/privacy-policy.md` — host it on GitHub Pages, a Gist, or any public URL and paste the link into the Console.
+Google requires a publicly hosted privacy policy URL. A minimal policy is sufficient given no data is collected. It is published via GitHub Pages from `docs/privacy-policy.html`:
+
+**https://tobibur.github.io/Journey/privacy-policy.html**
+
+(Readable source: `docs/privacy-policy.md`.)
 
 ---
 
