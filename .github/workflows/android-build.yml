@@ -1,12 +1,10 @@
-name: Build and Release APK
+name: CI
 
 on:
   push:
     branches:
-      - master  # Runs whenever you push to main branch
-
-permissions:
-  contents: write
+      - master  # Runs whenever you push to master branch
+  pull_request:
 
 jobs:
   build:
@@ -34,6 +32,12 @@ jobs:
       - name: Grant permission to gradlew
         run: chmod +x ./gradlew
 
+      - name: Run lint checks
+        run: ./gradlew lintDebug
+
+      - name: Run unit tests
+        run: ./gradlew testDebugUnitTest
+
       - name: Build Debug APK
         run: ./gradlew assembleDebug
 
@@ -42,35 +46,3 @@ jobs:
         with:
           name: app-debug.apk
           path: app/build/outputs/apk/debug/app-debug.apk
-
-      - name: Get last commit info
-        id: last_commit
-        run: |
-          echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          {
-            echo 'message<<EOF'
-            git log -1 --pretty=format:'%s'
-            echo
-            echo 'EOF'
-          } >> $GITHUB_OUTPUT
-
-      - name: Delete existing latest tag
-        run: git push origin :refs/tags/latest || true
-
-      - name: Create or Update Release
-        uses: ncipollo/release-action@v1
-        with:
-          tag: latest
-          commit: ${{ github.sha }}
-          name: "Latest Build (${{ steps.last_commit.outputs.short_sha }})"
-          body: |
-            **Last commit:** ${{ steps.last_commit.outputs.message }}
-            **Commit:** ${{ github.sha }}
-          artifacts: app/build/outputs/apk/debug/app-debug.apk
-          token: ${{ secrets.GITHUB_TOKEN }}
-          allowUpdates: true
-          makeLatest: true
-          replacesArtifacts: true
-          removeArtifacts: true
-
-
