@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -29,9 +30,29 @@ android {
         getByName("androidTest").assets.srcDir("$projectDir/schemas")
     }
 
+    // Release signing is configured via keystore.properties (gitignored, kept out
+    // of the repo). When the file is absent — e.g. on CI or a fresh clone — the
+    // signing config is simply not created, so debug builds keep working.
+    val keystorePropsFile = rootProject.file("keystore.properties")
+    signingConfigs {
+        if (keystorePropsFile.exists()) {
+            val keystoreProps = Properties().apply {
+                keystorePropsFile.inputStream().use { load(it) }
+            }
+            create("release") {
+                storeFile = file(keystoreProps.getProperty("storeFile"))
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            signingConfig = signingConfigs.findByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
