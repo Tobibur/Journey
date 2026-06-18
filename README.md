@@ -23,8 +23,10 @@ Journey is a personal journaling app built with Jetpack Compose and Kotlin. It h
 - Jetpack Compose
 - Material 3
 - Hilt (DI)
+- Room (local database)
 - DataStore (preferences)
-- MVVM architecture
+- WorkManager (daily reminders)
+- MVVM with Clean Architecture
 
 ## Getting Started
 
@@ -32,15 +34,15 @@ Journey is a personal journaling app built with Jetpack Compose and Kotlin. It h
 
 - Android Studio (2025.1.2 or newer)
 - JDK 17+
-- Android device or emulator (API 24+)
+- Android device or emulator (API 26+ / Android 8.0)
 
 ### Setup
 
 1. **Clone the repository:**
    ```sh
-   git clone https://github.com/Tobibur/Journey.git 
-   cd journey
-    ```
+   git clone https://github.com/Tobibur/Journey.git
+   cd Journey
+   ```
 2. **Open the project in Android Studio:**
 3. **Sync Gradle:**
    - Click on "Sync Now" when prompted to sync Gradle files.
