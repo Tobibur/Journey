@@ -95,6 +95,28 @@ class AnalyticsViewModelTest {
     }
 
     @Test
+    fun `weeklyEntryCounts has one bucket per shown week with the current week last`() = runTest {
+        val today = LocalDate.now()
+        val entries = listOf(
+            JournalEntry(1, "a", "a", millisAtNoon(today)),
+            JournalEntry(2, "b", "b", millisAtNoon(today)),
+            JournalEntry(3, "c", "c", millisAtNoon(today.minusWeeks(2)))
+        )
+        every { getEntries() } returns flowOf(entries)
+        every { getStreak() } returns flowOf(StreakStats(1, 1))
+
+        val viewModel = AnalyticsViewModel(getEntries, getStreak)
+        advanceUntilIdle()
+
+        val counts = viewModel.uiState.value.weeklyEntryCounts
+        assertEquals(AnalyticsViewModel.WEEKS_SHOWN, counts.size)
+        // Two entries this week land in the last (most recent) bucket.
+        assertEquals(2, counts.last())
+        // The entry two weeks ago lands three buckets from the end.
+        assertEquals(1, counts[counts.size - 3])
+    }
+
+    @Test
     fun `empty data produces zeroed ui state`() = runTest {
         every { getEntries() } returns flowOf(emptyList())
         every { getStreak() } returns flowOf(StreakStats(0, 0))
