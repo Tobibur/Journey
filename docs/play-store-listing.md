@@ -196,8 +196,8 @@ Welcome to Journey 1.0 — your private daily journal.
 | App name, package, version | ✅ Ready |
 | Short & full description | ✅ Drafted above |
 | App icon 512px | ⬜ Export needed |
-| Feature graphic 1024×500 | ⬜ Create |
-| Screenshots (min 2) | ⬜ Capture |
+| Feature graphic 1024×500 | ✅ `docs/store-assets/feature_graphic.png` |
+| Screenshots (min 2) | ✅ `docs/store-assets/screenshot_1..5.png` |
 | Content rating questionnaire | ⬜ Complete in Console |
 | Data safety form | ⬜ Complete in Console |
 | Privacy policy URL | ⬜ Host & link |
