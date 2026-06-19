@@ -11,9 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,29 +42,42 @@ class MainActivity : FragmentActivity() {
         val useDarkTheme = runBlocking { prefs.darkThemeFlow.first() }
         setTheme(if (useDarkTheme) R.style.Theme_Journey_Dark else R.style.Theme_Journey_Light)
 
+        // Read the app-lock setting synchronously so the very first frame already
+        // reflects the real value. Relying on the SettingsViewModel StateFlow here
+        // is unsafe because it emits its placeholder `false` before DataStore loads,
+        // which would latch isAuthenticated = true and skip the biometric prompt on
+        // a fresh (cold) launch.
+        val appLockEnabled = runBlocking { prefs.appLockEnabledFlow.first() }
+        appLockRequired.value = appLockEnabled
+        isAuthenticated.value = !appLockEnabled
+
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         preloadLottieAnimations()
 
+        // Keep appLockRequired in sync with live setting changes (e.g. the user
+        // toggling app lock in Settings while the app is open). The raw flow emits
+        // the stored value first, so there is no spurious unlock.
+        lifecycleScope.launch {
+            prefs.appLockEnabledFlow.collect { enabled ->
+                appLockRequired.value = enabled
+                if (!enabled) isAuthenticated.value = true
+            }
+        }
+
+        // Trigger the initial unlock. onResume runs after onCreate on a fresh
+        // launch and again whenever returning from background, so it covers both
+        // cold start and resume.
+        if (appLockRequired.value && !isAuthenticated.value &&
+            !BiometricAuthManager.isBiometricAvailable(this)
+        ) {
+            // Biometric was disabled after app lock was enabled; allow access.
+            isAuthenticated.value = true
+        }
+
         setContent {
             val settingsViewModel: SettingsViewModel = hiltViewModel()
-            val appLockEnabled by settingsViewModel.appLockEnabled.collectAsState()
-
-            LaunchedEffect(appLockEnabled) {
-                appLockRequired.value = appLockEnabled
-                if (appLockEnabled && !isAuthenticated.value) {
-                    if (BiometricAuthManager.isBiometricAvailable(this@MainActivity)) {
-                        authenticateUser()
-                    } else {
-                        // If biometric is not available but app lock is enabled,
-                        // allow access (edge case where biometric was disabled after enabling app lock)
-                        isAuthenticated.value = true
-                    }
-                } else if (!appLockEnabled) {
-                    isAuthenticated.value = true
-                }
-            }
 
             JourneyTheme(settingsViewModel) {
                 Surface(modifier = Modifier.fillMaxSize()) {
