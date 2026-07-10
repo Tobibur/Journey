@@ -8,8 +8,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,9 +29,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -82,8 +89,10 @@ fun AddEntryScreen(
                         text = "Save",
                         modifier = Modifier
                             .clickable {
+                                // Dismiss the keyboard immediately on Save, so it is
+                                // gone whether we pop back or show the streak popup.
+                                focusManager.clearFocus()
                                 viewModel.saveEntry {
-                                    focusManager.clearFocus()
                                     navController.popBackStack()
                                 }
                             }
@@ -110,7 +119,7 @@ fun AddEntryScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surface)
                 .imePadding()
-                .padding(16.dp)
+                .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
             BasicTextField(
                 value = title,
@@ -119,10 +128,14 @@ fun AddEntryScreen(
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.SemiBold
                 ),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+                    .fillMaxWidth(),
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(
+                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                ),
                 decorationBox = { innerTextField ->
                     if (title.isEmpty()) {
                         Text(
@@ -135,15 +148,17 @@ fun AddEntryScreen(
                 }
             )
 
+            Spacer(modifier = Modifier.height(12.dp))
+
             BasicTextField(
                 value = content,
                 onValueChange = viewModel::onContentChange,
                 textStyle = MaterialTheme.typography.bodyLarge.copy(
                     color = MaterialTheme.colorScheme.onSurface
                 ),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
+                    .fillMaxSize(),
                 maxLines = Int.MAX_VALUE,
                 decorationBox = { innerTextField ->
                     if (content.isEmpty()) {
