@@ -3,17 +3,17 @@ package com.tobibur.journey.presentation.screens.home
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -86,60 +86,52 @@ fun HomeScreen(
                 val monthFormatter = DateTimeFormatter.ofPattern("MMM yyyy")
 
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(top = 8.dp, bottom = 96.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     entriesByMonth.forEach { (yearMonth, monthEntries) ->
                         // Month-Year header
                         item(key = "month_${yearMonth}") {
                             Text(
-                                text = yearMonth.format(monthFormatter),
-                                style = MaterialTheme.typography.headlineSmall,
+                                text = yearMonth.format(monthFormatter).uppercase(),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                                    .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 2.dp)
                             )
                         }
 
                         // Entries for this month
                         items(
                             items = monthEntries,
-                            key = { it.id }
+                            key = { entry -> entry.id }
                         ) { entry ->
                             SwipeableItemWithActions(
                                 actions = {
                                     ActionIcon(
                                         onClick = {
-                                            navController.navigate(
-                                                Screen.ViewEntry.createRoute(
-                                                    entry.id
-                                                )
-                                            )
-                                        },
-                                        backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
-                                        icon = Icons.Default.Edit,
-                                        modifier = Modifier.fillMaxHeight()
-                                    )
-                                    ActionIcon(
-                                        onClick = {
                                             viewModel.deleteEntry(entry)
                                         },
                                         backgroundColor = MaterialTheme.colorScheme.errorContainer,
+                                        tint = MaterialTheme.colorScheme.onErrorContainer,
                                         icon = Icons.Default.Delete,
-                                        modifier = Modifier.fillMaxHeight()
+                                        contentDescription = "Delete entry",
+                                        modifier = Modifier.size(48.dp)
                                     )
                                 }
                             ) {
-                                Column {
-                                    JournalEntryCard(
-                                        entry = entry, onClick = {
-                                            navController.navigate(
-                                                Screen.ViewEntry.createRoute(
-                                                    entry.id
-                                                )
+                                JournalEntryCard(
+                                    entry = entry,
+                                    onClick = {
+                                        navController.navigate(
+                                            Screen.ViewEntry.createRoute(
+                                                entry.id
                                             )
-                                        }
-                                    )
-                                }
+                                        )
+                                    }
+                                )
                             }
                         }
                     }
