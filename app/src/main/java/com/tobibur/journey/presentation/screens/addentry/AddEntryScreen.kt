@@ -119,7 +119,7 @@ fun AddEntryScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surface)
                 .imePadding()
-                .padding(horizontal = 20.dp, vertical = 16.dp)
+                .padding(horizontal = 16.dp, vertical = 16.dp)
         ) {
             BasicTextField(
                 value = title,

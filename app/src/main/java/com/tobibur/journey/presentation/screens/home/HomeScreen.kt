@@ -21,6 +21,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
@@ -38,8 +41,10 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.tobibur.journey.R
 import com.tobibur.journey.data.UiState
+import com.tobibur.journey.domain.model.JournalEntry
 import com.tobibur.journey.presentation.components.ActionIcon
 import com.tobibur.journey.presentation.components.JournalEntryCard
+import com.tobibur.journey.presentation.components.JourneyDialog
 import com.tobibur.journey.presentation.components.JourneyTopAppBar
 import com.tobibur.journey.presentation.components.SwipeableItemWithActions
 import com.tobibur.journey.presentation.navigation.Screen
@@ -53,6 +58,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val stats by viewModel.streakStats.collectAsStateWithLifecycle()
+    var entryToDelete by remember { mutableStateOf<JournalEntry?>(null) }
     LaunchedEffect(Unit) {
         setTopBar {
             JourneyTopAppBar(title = {
@@ -87,7 +93,12 @@ fun HomeScreen(
 
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(top = 8.dp, bottom = 96.dp),
+                    contentPadding = PaddingValues(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 8.dp,
+                        bottom = 96.dp
+                    ),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     entriesByMonth.forEach { (yearMonth, monthEntries) ->
@@ -99,7 +110,7 @@ fun HomeScreen(
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 2.dp)
+                                    .padding(top = 12.dp, bottom = 2.dp)
                             )
                         }
 
@@ -112,7 +123,7 @@ fun HomeScreen(
                                 actions = {
                                     ActionIcon(
                                         onClick = {
-                                            viewModel.deleteEntry(entry)
+                                            entryToDelete = entry
                                         },
                                         backgroundColor = MaterialTheme.colorScheme.errorContainer,
                                         tint = MaterialTheme.colorScheme.onErrorContainer,
@@ -143,6 +154,21 @@ fun HomeScreen(
             val message = (uiState.value as UiState.Error).message
             NoEntriesToLoad(message)
         }
+    }
+
+    entryToDelete?.let { entry ->
+        JourneyDialog(
+            lottieRes = R.raw.delete_anim,
+            title = "Delete Entry?",
+            description = "Are you sure you want to delete this journal entry? This action cannot be undone.",
+            confirmButton = {
+                viewModel.deleteEntry(entry)
+                entryToDelete = null
+            },
+            dismissButton = {
+                entryToDelete = null
+            }
+        )
     }
 }
 

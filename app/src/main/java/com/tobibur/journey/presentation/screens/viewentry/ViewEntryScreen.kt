@@ -92,8 +92,9 @@ fun ViewEntryScreen(
     } else {
         Column(
             modifier = Modifier
-                .padding(16.dp)
+                .fillMaxSize()
                 .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 16.dp)
         ) {
             Text(text = entry.title, style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(16.dp))

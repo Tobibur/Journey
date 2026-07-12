@@ -69,7 +69,7 @@ fun AnalyticsScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp, vertical = 16.dp)
+            .padding(horizontal = 16.dp, vertical = 16.dp)
     ) {
         StreakHero(
             currentStreak = uiState.currentStreak,
@@ -77,7 +77,7 @@ fun AnalyticsScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(28.dp))
 
         StatRow(
             today = uiState.entriesToday,
